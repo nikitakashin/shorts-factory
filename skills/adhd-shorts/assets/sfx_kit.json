@@ -1,0 +1,244 @@
+{
+ "_comment": "Роли → сэмплы. libs: boom — Boom One (продакшн-SFX: вжухи, удары, UI), meme — 1000 мемных звуков myinstants (_manifest.json в порядке популярности). files: \"lib:путь или glob\". align: peak — пик на событие (вжух на склейке), onset — атака на событие (удар/мем на слове). mode: bed — зациклить на длину b-roll. gain_db — уровень после нормализации пика к 0 dBFS; обычные звуки на 5–7 дБ тише речи, развязка — на уровне речи. Справочник мемов по смыслу: references/meme_sounds.md.",
+ "libs": {
+  "boom": "~/Samples/Boom One/Split",
+  "meme": "~/Samples/Meme"
+ },
+ "roles": {
+  "whoosh": {
+   "files": [
+    "boom:SWOOSHES/SWISH/SWSH_Thick Long Wooden Stick Swish_*.wav",
+    "boom:SWOOSHES/SWISH/SWSH_Thin Long Wooden Stick Swish_*.wav"
+   ],
+   "align": "peak",
+   "gain_db": -15
+  },
+  "pop": {
+   "files": [
+    "boom:USER INTERFACE/BEEP/UIBeep_Pop Up_*.wav"
+   ],
+   "align": "onset",
+   "gain_db": -14
+  },
+  "boom": {
+   "files": [
+    "boom:DESIGNED/BOOM/DSGNBoom_Boom Processed Bass Drum Stylized Sub Hit_*.wav"
+   ],
+   "align": "onset",
+   "gain_db": -6,
+   "max_len": 2.2
+  },
+  "braam": {
+   "files": [
+    "boom:DESIGNED/IMPACT/DSGNImpt_Threatening Braam Impact_*.wav"
+   ],
+   "align": "onset",
+   "gain_db": -10,
+   "max_len": 2.0
+  },
+  "ticks": {
+   "files": [
+    "boom:CLOCKS/MECHANICS/CLOCKMech_Wind Up Pocket Watch_*.wav"
+   ],
+   "mode": "bed",
+   "gain_db": -12
+  },
+  "end": {
+   "files": [
+    "boom:CARTOON/BOING/TOONBoing_Jaw Harp Boing Playful 01_*.wav"
+   ],
+   "align": "onset",
+   "gain_db": -11
+  },
+  "error": {
+   "files": [
+    "boom:USER INTERFACE/BEEP/UIBeep_Friendly Error Notification_*.wav"
+   ],
+   "align": "onset",
+   "gain_db": -15,
+   "max_len": 1.0
+  },
+  "money": {
+   "files": [
+    "boom:USER INTERFACE/BEEP/UIBeep_Supermarket Scanner Beep_*.wav"
+   ],
+   "align": "onset",
+   "gain_db": -19
+  },
+  "win": {
+   "files": [
+    "boom:MUSICAL/BRASS/MUSCBrass_Brass Tadaaa_*.wav"
+   ],
+   "align": "onset",
+   "gain_db": -14
+  },
+  "sad": {
+   "files": [
+    "boom:CARTOON/MUSICAL/TOONMx_Flute Downslide Fast_*.wav"
+   ],
+   "align": "onset",
+   "gain_db": -9
+  },
+  "sparkle": {
+   "files": [
+    "boom:SWOOSHES/SWISH/SWSH_Sparkle Swish_*.wav"
+   ],
+   "align": "peak",
+   "gain_db": -12
+  },
+  "punch": {
+   "files": [
+    "boom:FIGHT/IMPACT/FGHTImpt_Punch Pillow Boxing Glove Hard_*.wav"
+   ],
+   "align": "onset",
+   "gain_db": -11
+  },
+  "fahh": {
+   "files": [
+    "meme:FAAAH.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -11,
+   "max_len": 1.9
+  },
+  "wrong": {
+   "files": [
+    "meme:Wrong Answer Buzzer.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -17,
+   "max_len": 1.1
+  },
+  "pay": {
+   "files": [
+    "meme:Apple Pay.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -9
+  },
+  "vineboom": {
+   "files": [
+    "meme:VINE BOOM SOUND.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -15
+  },
+  "boowomp": {
+   "files": [
+    "meme:spongebob boowomp.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -11
+  },
+  "bruh": {
+   "files": [
+    "meme:BRUH.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -11
+  },
+  "correct": {
+   "files": [
+    "meme:Correct Answer GameShow.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -14
+  },
+  "nope": {
+   "files": [
+    "meme:nope.avi.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -12
+  },
+  "huh": {
+   "files": [
+    "meme:HUH_ Cat meme.mp3",
+    "meme:Huh Cat.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -12
+  },
+  "wow": {
+   "files": [
+    "meme:Anime Wow.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -13
+  },
+  "yippee": {
+   "files": [
+    "meme:Yippee meme sound effect.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -13
+  },
+  "emotional": {
+   "files": [
+    "meme:Emotional Damage Meme.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -11
+  },
+  "dundun": {
+   "files": [
+    "meme:dun dun dunnnnnnnn.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -13,
+   "max_len": 3.0
+  },
+  "cricket": {
+   "files": [
+    "meme:Awkward cricket.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -14,
+   "max_len": 3.0
+  },
+  "camera": {
+   "files": [
+    "meme:Звук фотоаппарата.mp3",
+    "meme:Camera Flash Sound Effect.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -14
+  },
+  "pipe": {
+   "files": [
+    "meme:Metal pipe clang.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -14
+  },
+  "cash": {
+   "files": [
+    "meme:Cash registere sound.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -14
+  },
+  "sadviolin": {
+   "files": [
+    "meme:Sad Violin (the meme one).mp3"
+   ],
+   "align": "onset",
+   "gain_db": -16,
+   "max_len": 3.0
+  },
+  "flashbang": {
+   "files": [
+    "meme:CS-GO Flashbang.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -15
+  },
+  "censor": {
+   "files": [
+    "meme:Censor Beep 1.mp3"
+   ],
+   "align": "onset",
+   "gain_db": -12
+  }
+ }
+}

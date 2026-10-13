@@ -1,0 +1,86 @@
+{
+ "_comment": "Витрина всех блоков (только графика, времена числами). Сборка: mkdir /tmp/x && cp showcase.panels.json /tmp/x/panels.json && panels.py /tmp/x --total 33.4 && render_gfx.sh /tmp/x",
+ "total": 33.4,
+ "panels": [
+  {"at": 0, "mode": "full", "blocks": [
+   {"type": "title", "pre": "четыре", "text": "плагина.", "select_at": 1.1},
+   {"type": "install", "title": "Плагины · ставлю 4", "blur": true, "dur": 2.2, "items": [
+    {"name": "ponytail", "target": 25}, {"name": "omniroute", "target": 21}, {"name": "graphify", "target": 8}, {"name": "agent-skills", "target": 2}]}
+  ]},
+  {"at": 2.4, "mode": "full", "blocks": [
+   {"type": "title", "pre": "Первый —", "text": "Ponytail"},
+   {"type": "readme", "emoji": "🧑‍💻", "hero_bg": "#0d1219", "name": "Ponytail", "tagline": "He says nothing. He writes one line. It works."}
+  ]},
+  {"at": 5.0, "mode": "split", "blocks": [
+   {"type": "compare", "rows": [
+     {"label": "без ponytail", "prompt": "добавь выбор даты", "value": 43268, "unit": "токенов", "extra": "380 строк", "tone": "bad"},
+     {"label": "с ponytail", "prompt": "добавь выбор даты", "value": 17398, "unit": "токенов", "extra": "41 строка", "tone": "good", "at": 5.7}],
+    "checklist": {"at": 5.8, "step": 0.2, "items": ["Это вообще нужно?", "Уже есть в коде?", "Есть в stdlib?", "Умеет платформа?", "Есть в зависимостях?", "Хватит одной строки?", "Только тогда — минимум"]}}
+  ]},
+  {"at": 7.6, "mode": "split", "blocks": [
+   {"type": "counter", "label": "расход токенов", "suffix": "%", "steps": [{"at": 7.7, "value": -6}, {"at": 8.5, "value": -40}, {"at": 9.2, "value": -50}]}
+  ]},
+  {"at": 10.0, "mode": "full", "blocks": [
+   {"type": "title", "pre": "Второй —", "text": "OmniRoute"},
+   {"type": "hub", "nodes": ["Gemini", "Groq", "DeepSeek", "Mistral", "NVIDIA NIM", "Cloudflare", "Kimi", "Hugging Face"]}
+  ]},
+  {"at": 12.4, "mode": "full", "blocks": [
+   {"type": "title", "inline": true, "pre": "более", "text": "300"},
+   {"type": "grid", "icon": "🔀", "title": "Провайдеры", "subtitle": "358 провайдеров · 150+ бесплатно · один эндпоинт", "cols": 4,
+    "items": [{"name": "Kimi", "note": "бесплатно"}, {"name": "DeepSeek", "note": "бесплатно"}, {"name": "Gemini", "note": "бесплатно"}, {"name": "Groq", "note": "бесплатно"},
+              {"name": "Mistral", "note": "бесплатно"}, {"name": "NVIDIA NIM", "note": "бесплатно"}, {"name": "OpenRouter", "note": "бесплатно"}, {"name": "Together AI", "note": "бесплатно"},
+              {"name": "Cerebras", "note": "бесплатно"}, {"name": "Cloudflare AI", "note": "бесплатно"}, {"name": "SambaNova", "note": "бесплатно"}, {"name": "Cohere", "note": "бесплатно"}],
+    "steps": [{"at": 13.1, "state": "on", "stagger": 0.13, "names": ["Kimi", "Groq", "OpenRouter", "Cloudflare AI", "DeepSeek", "Cerebras", "Gemini", "Cohere"]}]}
+  ]},
+  {"at": 14.8, "mode": "split", "blocks": [
+   {"type": "terminal", "rows": 5, "lines": [
+     {"at": 15.0, "tool": "Grep", "arg": "\"fallback\"", "out": "найдено в 3 файлах"},
+     {"at": 15.4, "tool": "Read", "arg": "src/api/router.ts", "out": "прочитано 214 строк"},
+     {"at": 15.8, "tool": "Update", "arg": "src/api/router.ts", "out": "обновлено: +12 −3"},
+     {"at": 16.2, "tool": "Bash", "arg": "npm test", "out": "✓ 48 тестов"}],
+    "status": {"at": 15.0, "tokens": [{"at": 15.0, "v": 0.4}, {"at": 16.2, "v": 2.6}]},
+    "limit": {"steps": [{"at": 14.9, "v": 81}, {"at": 16.5, "v": 100}]}}
+  ]},
+  {"at": 17.4, "mode": "split", "blocks": [
+   {"type": "counter", "prefix": "~", "decimals": 2, "suffix": "B", "dsep": ".", "label": "бесплатных токенов в месяц", "tone": "#b46cff", "from": 0, "dur": 1.2,
+    "steps": [{"at": 17.5, "value": 1.62, "bar": 0.78}]}
+  ]},
+  {"at": 19.6, "mode": "full", "blocks": [
+   {"type": "title", "pre": "Третий —", "text": "Graphify"},
+   {"type": "graph", "nodes": 80, "steps": [{"at": 20.2, "nodes": 1224, "edges": 41}, {"at": 21.2, "nodes": 4812, "edges": 9095}]}
+  ]},
+  {"at": 22.4, "mode": "split", "blocks": [
+   {"type": "terminal", "prompt": {"text": "почини баг в авторизации", "at": 22.5, "type": 0.5}, "rows": 6, "lines": [
+     {"at": 22.9, "tool": "Read", "arg": "src/auth/login.ts", "out": "прочитано 214 строк"},
+     {"at": 23.2, "tool": "Read", "arg": "src/auth/session.ts", "out": "прочитано 168 строк"},
+     {"at": 23.5, "tool": "Grep", "arg": "\"token\"", "out": "23 совпадения"},
+     {"at": 23.8, "tool": "Read", "arg": "src/auth/login.ts", "out": "прочитано 214 строк", "kind": "dim"},
+     {"at": 24.0, "tool": "Read", "arg": "src/auth/session.ts", "out": "прочитано 168 строк", "kind": "dim"},
+     {"at": 24.2, "tool": "Read", "arg": "src/auth/login.ts", "out": "прочитано 214 строк", "kind": "dim"}],
+    "status": {"at": 22.9, "tokens": [{"at": 22.9, "v": 1.2}, {"at": 23.5, "v": 6.2}, {"at": 24.2, "v": 15.6}]}}
+  ]},
+  {"at": 24.6, "mode": "full", "theme": "light", "blocks": [
+   {"type": "title", "pre": "И наконец,", "text": "Agent Skills"},
+   {"type": "readme", "hero_text": "Agent\n   Skills", "badge": "#1 Repository Of The Day",
+    "pills": [{"text": "Spec", "color": "#3b82f6"}, {"text": "Plan", "color": "#ef4444"}, {"text": "Build", "color": "#eab308"}, {"text": "Test", "color": "#22c55e"}, {"text": "Review", "color": "#3b82f6"}, {"text": "Simplify", "color": "#ef4444"}, {"text": "Ship", "color": "#22c55e"}]}
+  ]},
+  {"at": 27.4, "mode": "split", "theme": "light", "blocks": [
+   {"type": "pipeline", "stages": [
+     {"name": "DEFINE", "cmd": "/spec", "color": "#3b82f6", "skills": ["interview-me", "idea-refine", "spec-driven-development"]},
+     {"name": "PLAN", "cmd": "/plan", "color": "#ef4444", "skills": ["planning-and-task-breakdown"]},
+     {"name": "BUILD", "cmd": "/build", "color": "#eab308", "skills": ["incremental-implementation", "test-driven-development", "context-engineering", "frontend-ui-engineering"]},
+     {"name": "VERIFY", "cmd": "/test", "color": "#22c55e", "skills": ["browser-testing-with-devtools", "debugging-and-error-recovery"]},
+     {"name": "REVIEW", "cmd": "/review", "color": "#8b5cf6", "skills": ["code-review-and-quality", "security-and-hardening"]},
+     {"name": "SHIP", "cmd": "/ship", "color": "#22c55e", "skills": ["git-workflow", "ci-cd-automation", "shipping-and-launch"]}],
+    "steps": [{"at": 27.9, "stage": "PLAN"}, {"at": 28.5, "stage": "BUILD"}, {"at": 29.1, "stage": "VERIFY"}, {"at": 29.7, "stage": "SHIP"}]}
+  ]},
+  {"at": 30.4, "until": 33.4, "mode": "split", "theme": "light", "gap": 34, "blocks": [
+   {"type": "toggle", "label": "включается сам", "on_at": 30.9},
+   {"type": "terminal", "at": 30.6, "prompt": {"text": "сделай оплату по подписке", "type": 0}, "rows": 6, "lines": [
+     {"at": 31.2, "tool": "Skill", "arg": "spec-driven-development", "out": "скилл подгружен"},
+     {"at": 31.8, "tool": "Skill", "arg": "api-and-interface-design", "out": "скилл подгружен"},
+     {"at": 32.4, "tool": "Skill", "arg": "test-driven-development", "out": "скилл подгружен"}],
+    "status": {"at": 31.2, "tokens": [{"at": 31.2, "v": 0.7}, {"at": 32.4, "v": 3.2}]}}
+  ]}
+ ]
+}

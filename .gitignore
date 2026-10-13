@@ -1,0 +1,11 @@
+.DS_Store
+__pycache__/
+*.pyc
+node_modules/
+renders/
+scratch/
+skills/ui-panels/engine/assets/js/
+skills/ui-panels/engine/assets/fonts/
+skills/ui-panels/engine/assets/media/
+skills/ui-panels/engine/assets/panels.js
+skills/adhd-shorts/assets/fonts/
