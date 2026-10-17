@@ -23,7 +23,7 @@ def at(spec, after=0.0):
 def to_src(t):
     for s in E["segs"]:
         t0 = s["f0"] / FPS; t1 = t0 + s["n"] / FPS
-        if t0 <= t < t1: return None if s.get("broll") else s["a"] + (t - t0) * s["sp_eff"]
+        if t0 <= t < t1: return None if s.get("broll") else (s.get("src", E["src"]), s["a"] + (t - t0) * s["sp_eff"])   # "src" у плана — merge_wd.py
     return None
 cands = []
 for key in ("stickers", "punch", "shake", "boom"):
@@ -37,15 +37,16 @@ for s in E["segs"]:                     # плюс кадр каждые 2.5 с 
 seen, picks = [], []
 for t, label in sorted(cands, key=lambda c: (c[1].startswith("t"), c[0])):   # акценты не вытесняются периодикой
     src = to_src(t)
-    if src is None or any(abs(src - x) < 1.0 for x in seen): continue
+    if src is None or any(src[0] == x[0] and abs(src[1] - x[1]) < 1.0 for x in seen): continue
     seen.append(src); picks.append((src, label))
 FACE = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 def face_area(f):
     g = cv2.cvtColor(cv2.resize(f, (540, 960)), cv2.COLOR_BGR2GRAY)
     fs = FACE.detectMultiScale(g, 1.1, 4, minSize=(70, 70))
     return max((w * h for x, y, w, h in fs), default=0)
-def grab(t):
-    raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{max(0, t - 0.35):.3f}", "-t", "0.7", "-i", E["src"],
+def grab(src):
+    f_, t = src
+    raw = subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{max(0, t - 0.35):.3f}", "-t", "0.7", "-i", f_,
                           "-vf", "fps=20,scale=1080:1920", "-f", "rawvideo", "-pix_fmt", "bgr24", "-"], capture_output=True).stdout
     fr = np.frombuffer(raw, np.uint8)[: len(raw) // (1080 * 1920 * 3) * 1080 * 1920 * 3].reshape(-1, 1920, 1080, 3)
     if not len(fr): return None
@@ -63,7 +64,7 @@ thumbs = []
 for i, (_, _, src, label, f) in enumerate(good, 1):
     p = OUT / f"{i:02d}_{label}.jpg"; cv2.imwrite(str(p), f, [cv2.IMWRITE_JPEG_QUALITY, 92])
     th = cv2.resize(f, (270, 480)); cv2.putText(th, f"{i:02d}", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 229, 255), 3)
-    thumbs.append(th); print(f"{p.name}  src {src:6.2f}s")
+    thumbs.append(th); print(f"{p.name}  src {src[1]:6.2f}s")
 if thumbs:
     rows = [np.hstack(thumbs[i:i + 4] + [np.zeros_like(thumbs[0])] * (4 - len(thumbs[i:i + 4]))) for i in range(0, len(thumbs), 4)]
     cv2.imwrite(str(OUT / "_sheet.jpg"), np.vstack(rows)); print("лист:", OUT / "_sheet.jpg")

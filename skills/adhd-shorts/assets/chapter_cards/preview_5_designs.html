@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>Chapter cards</title>
+<style>
+@font-face { font-family: "Inter"; font-weight: 500; src: url("assets/fonts/inter-cyrillic-500-normal.woff2") format("woff2"); unicode-range: U+0400-045F; }
+@font-face { font-family: "Inter"; font-weight: 500; src: url("assets/fonts/inter-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 700; src: url("assets/fonts/inter-cyrillic-700-normal.woff2") format("woff2"); unicode-range: U+0400-045F; }
+@font-face { font-family: "Inter"; font-weight: 700; src: url("assets/fonts/inter-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 800; src: url("assets/fonts/inter-cyrillic-800-normal.woff2") format("woff2"); unicode-range: U+0400-045F; }
+@font-face { font-family: "Inter"; font-weight: 800; src: url("assets/fonts/inter-latin-800-normal.woff2") format("woff2"); }
+@font-face { font-family: "JBM"; font-weight: 400; src: url("assets/fonts/jetbrains-mono-cyrillic-400-normal.woff2") format("woff2"); unicode-range: U+0400-045F; }
+@font-face { font-family: "JBM"; font-weight: 400; src: url("assets/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "JBM"; font-weight: 700; src: url("assets/fonts/jetbrains-mono-cyrillic-700-normal.woff2") format("woff2"); unicode-range: U+0400-045F; }
+@font-face { font-family: "JBM"; font-weight: 700; src: url("assets/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Mont"; font-weight: 100 900; src: url("assets/fonts/Montserrat.ttf") format("truetype"); }
+@font-face { font-family: "Osw"; font-weight: 200 700; src: url("assets/fonts/Oswald.ttf") format("truetype"); }
+
+:root { --y: #FFE500; --r: #E61E28; --blue: #2f7cf6; --navy0: #0e131b; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: "Inter", sans-serif; color: #eef1f6; }
+.slot { position: absolute; inset: 0; visibility: hidden; }
+.still { position: absolute; inset: 0; width: 1920px; height: 1080px; object-fit: cover; }
+.card { position: absolute; inset: 0; overflow: hidden; }
+.abs { position: absolute; }
+.noise { position: absolute; inset: 0; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+.navy { background: radial-gradient(ellipse 70% 60% at 50% 40%, #223049 0%, #161d2a 55%, #0b1017 100%); }
+
+/* ---------- 1. Фигма ---------- */
+#c1 .label { left: 0; right: 0; top: 262px; text-align: center; font-family: "JBM"; font-size: 34px; letter-spacing: 6px; color: #8fa3c4; }
+#c1 .title { left: 0; right: 0; top: 400px; text-align: center; font-weight: 800; font-size: 150px; letter-spacing: -3px; color: #fff; line-height: 1; }
+#c1 .sel { left: 440px; top: 380px; width: 1040px; height: 196px; border: 3px solid var(--blue); transform-origin: left center; }
+#c1 .h { position: absolute; width: 18px; height: 18px; background: #fff; border: 3px solid var(--blue); }
+#c1 .tag { left: 440px; top: 340px; background: var(--blue); color: #fff; font-size: 22px; font-weight: 700; padding: 5px 12px; border-radius: 4px; transform-origin: left bottom; }
+#c1 .lead { left: 0; right: 0; top: 640px; text-align: center; font-weight: 500; font-size: 48px; color: #c9d3e3; }
+#c1 .cursor { display: inline-block; width: 4px; height: 52px; background: var(--y); vertical-align: -8px; margin-left: 6px; }
+#c1 .dots { left: 0; right: 0; top: 860px; display: flex; justify-content: center; gap: 18px; }
+#c1 .dot { width: 14px; height: 14px; border-radius: 7px; background: rgba(255,255,255,.18); }
+#c1 .dot.on { width: 54px; background: var(--y); }
+
+/* ---------- 2. Оглавление ---------- */
+#c2 .head { left: 150px; top: 120px; font-family: "JBM"; font-size: 30px; letter-spacing: 6px; color: #8fa3c4; }
+#c2 .list { left: 150px; top: 190px; width: 860px; }
+#c2 .it { position: relative; height: 82px; display: flex; align-items: center; font-size: 42px; font-weight: 700; color: #5d6676; }
+#c2 .it .n { font-family: "JBM"; font-weight: 400; font-size: 30px; width: 80px; color: #3f4756; }
+#c2 .it.done { color: #8a94a6; }
+#c2 .it.done .n { color: #5d6676; }
+#c2 .bar { position: absolute; left: -30px; right: -40px; top: 6px; bottom: 6px; background: var(--y); border-radius: 12px; transform-origin: left center; }
+#c2 .it.cur { color: #0b0f15; }
+#c2 .it.cur .n { color: #0b0f15; }
+#c2 .it .txt, #c2 .it .n { position: relative; }
+#c2 .side { left: 1110px; top: 330px; width: 680px; }
+#c2 .q { font-weight: 800; font-size: 76px; line-height: 1.05; color: #fff; }
+#c2 .a { margin-top: 36px; font-weight: 500; font-size: 46px; line-height: 1.25; color: #8fa3c4; }
+#c2 .vline { left: 1060px; top: 190px; width: 3px; height: 740px; background: rgba(255,255,255,.08); transform-origin: top; }
+
+/* ---------- 3. Жёлтый удар ---------- */
+#c3 .ybg { inset: 0; background: var(--y); transform-origin: left center; }
+#c3 .tape { left: -100px; width: 2200px; height: 70px; background: repeating-linear-gradient(-45deg, #0b0b0b 0 40px, var(--y) 40px 80px); }
+#c3 .num { right: 120px; top: 120px; font-family: "Osw"; font-weight: 700; font-size: 560px; line-height: 1; color: #0b0b0b; letter-spacing: -10px; }
+#c3 .kick { left: 140px; top: 300px; font-family: "Mont"; font-weight: 800; font-size: 44px; letter-spacing: 4px; color: #0b0b0b; }
+#c3 .title { left: 130px; top: 360px; width: 1150px; font-family: "Mont"; font-weight: 900; font-size: 150px; line-height: .95; color: #0b0b0b; letter-spacing: -4px; }
+#c3 .lead { left: 140px; top: 720px; background: #0b0b0b; color: #fff; font-family: "Mont"; font-weight: 800; font-size: 46px; padding: 22px 34px; border-radius: 18px; transform: rotate(-2deg); transform-origin: left center; }
+
+/* ---------- 4. Терминал ---------- */
+#c4 .bg { inset: 0; background: #07090d; }
+#c4 .win { left: 260px; top: 150px; width: 1400px; height: 780px; background: #0d1117; border: 2px solid #232a36; border-radius: 22px; overflow: hidden; }
+#c4 .bar { height: 64px; background: #141a23; display: flex; align-items: center; padding: 0 26px; gap: 14px; font-family: "JBM"; font-size: 24px; color: #6b7587; }
+#c4 .b { width: 18px; height: 18px; border-radius: 9px; }
+#c4 .body { padding: 48px 60px; font-family: "JBM"; font-size: 36px; line-height: 1.7; color: #c9d1d9; }
+#c4 .pr { color: #d97757; }
+#c4 .dim { color: #5c6573; }
+#c4 .ok { color: #2fd36b; }
+#c4 .big { font-weight: 700; font-size: 104px; line-height: 1.15; color: #fff; margin: 22px 0 18px; }
+#c4 .big .o { color: #d97757; }
+#c4 .prog { display: flex; align-items: center; gap: 24px; margin-top: 18px; }
+#c4 .track { width: 560px; height: 22px; background: #1d2430; border-radius: 11px; overflow: hidden; }
+#c4 .fill { height: 100%; width: 100%; background: #d97757; transform-origin: left center; }
+#c4 .flash { inset: 0; background: #fff; }
+
+/* ---------- 5. Кинетика ---------- */
+#c5 .bg { inset: 0; background: #07090d; }
+#c5 .num { left: 1060px; top: -120px; font-family: "Osw"; font-weight: 700; font-size: 1150px; line-height: 1; color: transparent; -webkit-text-stroke: 5px var(--y); }
+#c5 .ln { left: 140px; height: 175px; overflow: hidden; }
+#c5 .ln span { display: block; font-family: "Mont"; font-weight: 900; font-size: 160px; line-height: 175px; color: #fff; letter-spacing: -5px; }
+#c5 .ul { left: 145px; top: 650px; width: 520px; height: 16px; background: var(--r); transform-origin: left center; }
+#c5 .kick { left: 145px; top: 250px; font-family: "JBM"; font-size: 32px; letter-spacing: 8px; color: var(--y); }
+#c5 .lead { left: 145px; top: 720px; width: 1000px; font-weight: 500; font-size: 46px; line-height: 1.3; color: #b8c2d3; }
+#c5 .dots { left: 145px; top: 930px; display: flex; gap: 16px; align-items: center; }
+#c5 .dot { height: 14px; width: 14px; border-radius: 7px; background: rgba(255,255,255,.2); }
+#c5 .dot.done { background: rgba(255,255,255,.55); }
+#c5 .dot.on { width: 120px; background: var(--r); }
+</style>
+<script src="assets/js/gsap.min.js"></script>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="25" data-width="1920" data-height="1080">
+
+  <!-- 1. Фигма -->
+  <div class="slot" id="s1">
+    <img class="still" src="assets/media/prev.jpg" /><img class="still nxt" src="assets/media/next.jpg" />
+    <div class="card navy" id="c1"><div class="noise"></div>
+      <div class="abs label">ГЛАВА 03 / 09</div>
+      <div class="abs tag">Frame · Глава 3</div>
+      <div class="abs sel"><i class="h" style="left:-11px;top:-11px"></i><i class="h" style="right:-11px;top:-11px"></i><i class="h" style="left:-11px;bottom:-11px"></i><i class="h" style="right:-11px;bottom:-11px"></i></div>
+      <div class="abs title">Чистка голоса</div>
+      <div class="abs lead"><span class="ty" data-text="Почему не локальная нейросеть? Mac ушёл в перезагрузку"></span><span class="cursor"></span></div>
+      <div class="abs dots"><i class="dot"></i><i class="dot"></i><i class="dot on"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div>
+    </div>
+  </div>
+
+  <!-- 2. Оглавление -->
+  <div class="slot" id="s2">
+    <img class="still" src="assets/media/prev.jpg" /><img class="still nxt" src="assets/media/next.jpg" />
+    <div class="card navy" id="c2"><div class="noise"></div>
+      <div class="abs head">СОДЕРЖАНИЕ</div>
+      <div class="abs vline"></div>
+      <div class="abs list">
+        <div class="it done"><span class="n">01</span><span class="txt">Почему не готовые сервисы</span></div>
+        <div class="it done"><span class="n">02</span><span class="txt">Как снимать для ИИ</span></div>
+        <div class="it cur"><i class="bar"></i><span class="n">03</span><span class="txt">Чистка голоса</span></div>
+        <div class="it"><span class="n">04</span><span class="txt">Пресет FL без FL Studio</span></div>
+        <div class="it"><span class="n">05</span><span class="txt">Звуки и мемы</span></div>
+        <div class="it"><span class="n">06</span><span class="txt">Хук и удержание</span></div>
+        <div class="it"><span class="n">07</span><span class="txt">Упаковка</span></div>
+        <div class="it"><span class="n">08</span><span class="txt">CapCut вместо рендера</span></div>
+        <div class="it"><span class="n">09</span><span class="txt">Сколько это стоит</span></div>
+      </div>
+      <div class="abs side"><div class="q">Почему не локальная нейросеть?</div><div class="a">Спойлер: Mac ушёл в перезагрузку</div></div>
+    </div>
+  </div>
+
+  <!-- 3. Жёлтый удар -->
+  <div class="slot" id="s3">
+    <img class="still" src="assets/media/prev.jpg" /><img class="still nxt" src="assets/media/next.jpg" />
+    <div class="card" id="c3">
+      <div class="abs ybg"></div>
+      <div class="abs tape" style="top:40px"></div><div class="abs tape" style="top:970px"></div>
+      <div class="abs num">03</div>
+      <div class="abs kick">ГЛАВА 3</div>
+      <div class="abs title">ЧИСТКА<br/>ГОЛОСА</div>
+      <div class="abs lead">Почему не локальная нейросеть? 💀</div>
+    </div>
+  </div>
+
+  <!-- 4. Терминал -->
+  <div class="slot" id="s4">
+    <img class="still" src="assets/media/prev.jpg" /><img class="still nxt" src="assets/media/next.jpg" />
+    <div class="card" id="c4">
+      <div class="abs bg"></div>
+      <div class="abs win">
+        <div class="bar"><i class="b" style="background:#ff5f57"></i><i class="b" style="background:#febc2e"></i><i class="b" style="background:#28c840"></i><span style="margin-left:20px">claude — ~/videos/shorts-pipeline</span></div>
+        <div class="body">
+          <div><span class="pr">❯ </span><span class="ty" data-text="следующая глава"></span></div>
+          <div class="l1 dim">● Read(chapters.md) — 9 глав</div>
+          <div class="l2 ok">✓ Глава 3 из 9</div>
+          <div class="big"><span class="ty o" data-text="ЧИСТКА ГОЛОСА"></span></div>
+          <div class="l3 dim">✻ <span class="ty" data-text="почему не локальная нейросеть? Mac ушёл в перезагрузку"></span></div>
+          <div class="prog l4"><div class="track"><div class="fill"></div></div><span class="dim">3 / 9</span></div>
+        </div>
+      </div>
+      <div class="abs flash"></div>
+    </div>
+  </div>
+
+  <!-- 5. Кинетика -->
+  <div class="slot" id="s5">
+    <img class="still" src="assets/media/prev.jpg" /><img class="still nxt" src="assets/media/next.jpg" />
+    <div class="card" id="c5">
+      <div class="abs bg"></div><div class="noise"></div>
+      <div class="abs num">3</div>
+      <div class="abs kick">ГЛАВА ТРЕТЬЯ</div>
+      <div class="abs ln" style="top:300px"><span>ЧИСТКА</span></div>
+      <div class="abs ln" style="top:470px"><span>ГОЛОСА</span></div>
+      <div class="abs ul"></div>
+      <div class="abs lead">Почему не локальная нейросеть? Mac ушёл в перезагрузку</div>
+      <div class="abs dots"><i class="dot done"></i><i class="dot done"></i><i class="dot on"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const D = 5;                       // длина слота: 0.5 кадр главы → заставка → 0.5 следующий кадр
+  const q = (s, r = document) => r.querySelector(s), qa = (s, r = document) => [...r.querySelectorAll(s)];
+  const typers = [];                 // печать текста: считается от времени таймлайна (а не колбэков), работает при перемотке
+  const type = (el, t0, cps) => typers.push({ el, t0, cps, text: el.dataset.text });
+  const drive = t => { for (const p of typers) { const n = Math.max(0, Math.min(p.text.length, Math.floor((t - p.t0) * p.cps))); if (p.el.__n !== n) { p.el.textContent = p.text.slice(0, n); p.el.__n = n; } } };
+  const tl = gsap.timeline({ paused: true, onUpdate: () => drive(tl.time()) });
+  const slot = (i, build) => {
+    const s = q(`#s${i}`), T = (i - 1) * D, nxt = q(".nxt", s);
+    tl.set(s, { visibility: "visible" }, T).set(s, { visibility: "hidden" }, T + D - 0.001);
+    tl.set(nxt, { opacity: 0 }, T).set(nxt, { opacity: 1 }, T + 3.6);
+    build(s, T);
+  };
+
+  // 1. Фигма: шторка снизу вверх, рамка выделения, печать подводки, уход вверх
+  slot(1, (s, T) => {
+    const c = q(".card", s);
+    tl.fromTo(c, { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: .55, ease: "power3.inOut" }, T + .5);
+    tl.from(q(".label", c), { y: 24, opacity: 0, duration: .4, ease: "power2.out" }, T + .85);
+    tl.from(q(".title", c), { y: 60, opacity: 0, duration: .55, ease: "power3.out" }, T + .95);
+    tl.from(q(".sel", c), { scaleX: 0, duration: .45, ease: "power3.out" }, T + 1.25);
+    tl.from(qa(".h", c), { scale: 0, duration: .25, stagger: .05, ease: "back.out(3)" }, T + 1.55);
+    tl.from(q(".tag", c), { scale: 0, duration: .3, ease: "back.out(2.5)" }, T + 1.6);
+    type(q(".ty", c), T + 1.75, 34);
+    tl.from(qa(".dot", c), { scale: 0, duration: .25, stagger: .04, ease: "back.out(2)" }, T + 1.2);
+    tl.fromTo(q(".cursor", c), { opacity: 1 }, { opacity: 0, duration: .01, repeat: 7, yoyo: true, repeatDelay: .24 }, T + 1.75);
+    tl.to(c, { clipPath: "inset(0% 0% 100% 0%)", duration: .5, ease: "power3.inOut" }, T + 4.0);
+  });
+
+  // 2. Оглавление: въезд слева, список, жёлтая плашка на текущей главе, справа подводка
+  slot(2, (s, T) => {
+    const c = q(".card", s);
+    tl.fromTo(c, { xPercent: -100 }, { xPercent: 0, duration: .6, ease: "power3.out" }, T + .5);
+    tl.from(qa(".it", c), { x: -60, opacity: 0, duration: .35, stagger: .05, ease: "power2.out" }, T + .8);
+    tl.from(q(".vline", c), { scaleY: 0, duration: .5, ease: "power2.out" }, T + .9);
+    tl.from(q(".bar", c), { scaleX: 0, duration: .45, ease: "power3.out" }, T + 1.45);
+    tl.fromTo(q(".it.cur", c), { color: "#5d6676" }, { color: "#0b0f15", duration: .2 }, T + 1.55);
+    tl.to(q(".it.cur", c), { x: 26, duration: .45, ease: "back.out(2)" }, T + 1.45);
+    tl.from(q(".q", c), { y: 40, opacity: 0, duration: .5, ease: "power3.out" }, T + 1.7);
+    tl.from(q(".a", c), { y: 30, opacity: 0, duration: .5, ease: "power3.out" }, T + 2.1);
+    tl.to(c, { xPercent: 100, duration: .55, ease: "power3.in" }, T + 4.0);
+  });
+
+  // 3. Жёлтый удар: заливка слева, лента, цифра, заголовок, плашка-подводка, уход вправо
+  slot(3, (s, T) => {
+    const c = q(".card", s);
+    tl.from(q(".ybg", c), { scaleX: 0, duration: .4, ease: "power4.out" }, T + .5);
+    tl.from(qa(".tape", c), { xPercent: (i) => i ? 30 : -30, opacity: 0, duration: .5, ease: "power2.out" }, T + .7);
+    tl.from(q(".num", c), { x: 500, opacity: 0, duration: .55, ease: "power4.out" }, T + .75);
+    tl.from(q(".kick", c), { y: 20, opacity: 0, duration: .3 }, T + .9);
+    tl.from(q(".title", c), { y: 80, opacity: 0, duration: .45, ease: "back.out(1.6)" }, T + .95);
+    tl.fromTo(q(".lead", c), { scale: 0, rotation: -12 }, { scale: 1, rotation: -2, duration: .5, ease: "back.out(2.2)" }, T + 1.5);
+    tl.to(q(".num", c), { x: -30, duration: 2.5, ease: "none" }, T + 1.3);
+    tl.to(qa(".tape", c), { xPercent: (i) => i ? -4 : 4, duration: 2.6, ease: "none" }, T + 1.2);
+    tl.to(c, { xPercent: 100, duration: .45, ease: "power4.in" }, T + 4.0);
+  });
+
+  // 4. Терминал: вспышка-наезд, печать команды, строки, заголовок, прогресс; уход — схлопывание
+  slot(4, (s, T) => {
+    const c = q(".card", s), w = q(".win", c);
+    tl.fromTo(c, { opacity: 0 }, { opacity: 1, duration: .15 }, T + .5);
+    tl.fromTo(q(".flash", c), { opacity: .9 }, { opacity: 0, duration: .35 }, T + .5);
+    tl.from(w, { scale: 1.12, opacity: 0, duration: .5, ease: "power3.out" }, T + .55);
+    const tys = qa(".ty", c);
+    type(tys[0], T + .9, 30);
+    tl.from(q(".l1", c), { opacity: 0, duration: .01 }, T + 1.5);
+    tl.from(q(".l2", c), { opacity: 0, duration: .01 }, T + 1.75);
+    type(tys[1], T + 1.95, 22);
+    type(tys[2], T + 2.55, 45);
+    tl.from(q(".l4", c), { opacity: 0, duration: .2 }, T + 2.3);
+    tl.fromTo(q(".fill", c), { scaleX: .222 }, { scaleX: .333, duration: .6, ease: "power2.out" }, T + 2.4);
+    tl.to(w, { scaleY: .01, duration: .25, ease: "power3.in" }, T + 4.0).to(w, { scaleX: 0, duration: .15, ease: "power3.in" }, T + 4.25);
+    tl.to(c, { opacity: 0, duration: .15 }, T + 4.35);
+  });
+
+  // 5. Кинетика: ирис, огромная цифра контуром, слова снизу, красная черта, точки-главы; уход — ирис
+  slot(5, (s, T) => {
+    const c = q(".card", s);
+    tl.fromTo(c, { clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(75% at 50% 50%)", duration: .6, ease: "power3.inOut" }, T + .5);
+    tl.fromTo(q(".num", c), { scale: 1.5, opacity: 0 }, { scale: 1, opacity: 1, duration: .8, ease: "power3.out" }, T + .6);
+    tl.to(q(".num", c), { x: -60, y: 20, duration: 2.6, ease: "none" }, T + 1.3);
+    tl.from(q(".kick", c), { opacity: 0, y: 16, duration: .35 }, T + .85);
+    tl.from(qa(".ln span", c), { yPercent: 100, duration: .55, stagger: .12, ease: "power4.out" }, T + .9);
+    tl.from(q(".ul", c), { scaleX: 0, duration: .45, ease: "power3.out" }, T + 1.35);
+    tl.from(q(".lead", c), { opacity: 0, y: 24, duration: .5, ease: "power2.out" }, T + 1.6);
+    tl.from(qa(".dot", c), { scale: 0, duration: .25, stagger: .04, ease: "back.out(2)" }, T + 1.5);
+    tl.to(c, { clipPath: "circle(0% at 50% 50%)", duration: .5, ease: "power3.inOut" }, T + 4.0);
+  });
+
+  tl.set({}, {}, 5 * D);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["main"] = tl;
+  drive(0);
+})();
+</script>
+</body>
+</html>

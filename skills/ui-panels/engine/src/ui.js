@@ -53,9 +53,57 @@
     }
     return { v, k, p: clamp01(p) };
   }
+  // Пресеты появления (моушн-библиотека 2026-10-17, references/motion-library.md): блок выбирает "enter" в panels.json.
+  //   rise (по умолчанию) — снизу с лёгким перелётом; pop — из точки 0.15→1.06→1; drop — падает сверху с пружиной;
+  //   line — линия → пилюля → карточка; blurin — из размытия (для текста: text-shadow, без filter); slide — сбоку.
+  let CUR = null;
   function enter(node, at, o = {}) {
-    gsap.set(node, { opacity: 0, y: o.y ?? 34, scale: o.s ?? 0.965 });
-    tl.to(node, { opacity: 1, y: 0, scale: 1, duration: o.dur ?? 0.42, ease: o.ease ?? "back.out(1.5)" }, at);
+    const pr = o.preset || (CUR && CUR.enter) || "rise";
+    if (pr === "pop") {
+      gsap.set(node, { opacity: 0, scale: 0.15 });
+      tl.to(node, { opacity: 1, scale: 1.06, duration: 0.3, ease: "power3.out" }, at);
+      tl.to(node, { scale: 1, duration: 0.3, ease: "power2.inOut" }, at + 0.3);
+    } else if (pr === "drop") {
+      gsap.set(node, { opacity: 0, y: -285, scale: 0.9 });
+      tl.to(node, { opacity: 1, duration: 0.12 }, at);
+      tl.to(node, { y: 0, scale: 1, duration: 0.8, ease: "elastic.out(1, 0.55)" }, at);
+    } else if (pr === "line") {
+      gsap.set(node, { opacity: 1, scaleX: 0, scaleY: 0.012, transformOrigin: "50% 50%" });
+      tl.to(node, { scaleX: 1, duration: 0.12, ease: "power2.out" }, at);
+      tl.to(node, { scaleY: 0.06, duration: 0.1, ease: "power2.out" }, at + 0.12);
+      tl.to(node, { scaleY: 1, duration: 0.26, ease: "power3.out" }, at + 0.22);
+    } else if (pr === "slide") {
+      gsap.set(node, { opacity: 0, x: (o.dir || CUR?.dir) === "right" ? 240 : -240 });
+      tl.to(node, { opacity: 1, x: 0, duration: 0.42, ease: "expo.out" }, at);
+    } else if (pr === "blurin") {
+      blurIn(node, at, o.dur ?? 0.22);
+    } else {
+      gsap.set(node, { opacity: 0, y: o.y ?? 34, scale: o.s ?? 0.965 });
+      tl.to(node, { opacity: 1, y: 0, scale: 1, duration: o.dur ?? 0.42, ease: o.ease ?? "back.out(1.5)" }, at);
+    }
+  }
+  // Проявление из размытия без filter (он ломает быстрый захват): текст прозрачный, видна только его тень-размытие,
+  // которая сжимается до нуля; цвет берётся из стиля при первом кадре. Для текста и SVG-текста.
+  function blurIn(node, at, dur = 0.22, from = 18) {
+    let col = null;
+    gsap.set(node, { x: -22, scale: 1.12 });
+    tl.to(node, { x: 0, scale: 1, duration: dur, ease: "power3.out" }, at);
+    drive((t) => {
+      if (!node.isConnected) return;
+      if (!col) col = rgb(getComputedStyle(node).color.replace(/rgba?\(|\)/g, "").split(",").slice(0, 3).map((v) => (+v).toString(16).padStart(2, "0")).join(""));
+      const p = clamp01((t - at) / dur), e = easeOut(p), [r, g, b] = col;
+      setStyle(node, "color", p >= 1 ? "" : `rgba(${r},${g},${b},${(e * e).toFixed(3)})`);
+      setStyle(node, "textShadow", p >= 1 ? "" : `0 0 ${(from * (1 - e)).toFixed(1)}px rgba(${r},${g},${b},${(t < at ? 0 : 0.9 * (1 - e) + 0.1).toFixed(3)})`);
+      setStyle(node, "opacity", t < at ? "0" : "1");
+    });
+  }
+  // Пресеты исчезновения: "exit": "implode" (замах 1.05 → в точку, expo.in), "fade", "drop" (вниз); "exit_at" — когда.
+  function exitFx(node, b, P) {
+    const ex = b.exit; if (!ex) return;
+    const at = b.exit_at ?? (P.until - 0.24);
+    if (ex === "implode") { tl.to(node, { scale: 1.05, duration: 0.08, ease: "power2.out" }, at); tl.to(node, { scale: 0, opacity: 0, duration: 0.2, ease: "expo.in" }, at + 0.08); }
+    else if (ex === "drop") tl.to(node, { y: 420, opacity: 0, duration: 0.3, ease: "power3.in" }, at);
+    else tl.to(node, { opacity: 0, duration: 0.2, ease: "power1.in" }, at);
   }
   function fadeUp(nodes, at, stagger = 0.06, y = 16) {
     nodes = [].concat(nodes).filter(Boolean);
@@ -63,7 +111,7 @@
     gsap.set(nodes, { opacity: 0, y });
     tl.to(nodes, { opacity: 1, y: 0, duration: 0.32, ease: "power3.out", stagger }, at);
   }
-  const full = (P) => P.mode === "full";
+  const full = (P) => P.mode === "full" || P.mode === "pip";   // pip — графика на весь кадр, лицо в карточке сверху
 
   // ---------------- title ----------------
   B.title = (b, P) => {
@@ -598,6 +646,9 @@
   // ---------------- сборка ----------------
   window.UI = {
     blocks: B,
+    // внутренности движка для блоков моушн-библиотеки (src/motion.js): таймлайн живёт только во время build
+    kit: { el, sv, esc, setText, setHTML, setStyle, setClass, rgb, mix, fmt, stepped, rng, clamp01, easeOut, enter, blurIn, fadeUp, qlen,
+           C, PALETTE, full, drive: (fn) => drive(fn), tl: () => tl },
     build(P) {
       const host = document.getElementById("root");
       if (P.canvas === "landscape") document.documentElement.classList.add("landscape");
@@ -614,14 +665,23 @@
         if (p.scale) { area.style.transform = `scale(${p.scale})`; area.style.transformOrigin = "50% 50%"; }
         sec.appendChild(area);
         host.appendChild(sec);
+        if (window.UI.panelExtras) window.UI.panelExtras(sec, p);     // фоновое слово, декор, дрейф пятен (motion.js)
         if (p.at < 1 / 120) gsap.set(sec, { visibility: "visible" }); else { gsap.set(sec, { visibility: "hidden" }); tl.set(sec, { visibility: "visible" }, p.at); }
         if (p.until < P.total) tl.set(sec, { visibility: "hidden" }, p.until);
         (p.blocks || []).forEach((b, i) => {
           const fn = B[b.type];
           if (!fn) throw new Error(`неизвестный блок «${b.type}»`);
-          const node = fn({ ...b, at: b.at ?? p.at + i * 0.15 }, { ...p, mode });
+          CUR = { ...b, at: b.at ?? p.at + i * 0.15 };
+          const node = fn(CUR, { ...p, mode });
+          CUR = null;
           if (b.style) Object.assign(node.style, b.style);
-          area.appendChild(node);
+          exitFx(node, b, p);
+          // layer "over" — блок вне колонки, абсолютно по x/y (курсор, частицы, рипл, декор); иначе — в колонку
+          if (b.layer === "over" || b.layer === "under") {   // under — позади колонки (частицы за заголовком)
+            node.style.position = "absolute"; node.style.left = (b.x ?? 0) + "px"; node.style.top = (b.y ?? 0) + "px";
+            if (b.layer === "under") sec.insertBefore(node, area); else sec.appendChild(node);
+          }
+          else area.appendChild(node);
         });
       });
       window.__total = P.total;

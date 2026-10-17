@@ -45,10 +45,18 @@
   },
   "end": {
    "files": [
-    "boom:CARTOON/BOING/TOONBoing_Jaw Harp Boing Playful 01_*.wav"
+    "meme:roblox bye.mp3",
+    "meme:Cat laughing at you.mp3",
+    "meme:Wait, What!_.mp3",
+    "meme:MGS2 Snake - Kept You Waiting Huh.mp3",
+    "meme:Rizzbot laugh.mp3",
+    "meme:Oh Noh Cartoon.mp3",
+    "meme:dun dun dunnnnnnnn.mp3",
+    "meme:Вот это поворот.mp3"
    ],
    "align": "onset",
-   "gain_db": -11
+   "gain_db": -12,
+   "max_len": 2.6
   },
   "error": {
    "files": [
@@ -157,7 +165,8 @@
     "meme:Huh Cat.mp3"
    ],
    "align": "onset",
-   "gain_db": -12
+   "gain_db": -12,
+   "max_len": 2.0
   },
   "wow": {
    "files": [
@@ -239,6 +248,22 @@
    ],
    "align": "onset",
    "gain_db": -12
+  },
+  "glitch": {
+   "files": [
+    "boom:DESIGNED/SYNTHETIC/DSGNSynth_Blast Synth Gnarly Wavetable Stutter_*.wav"
+   ],
+   "align": "onset",
+   "gain_db": -20,
+   "max_len": 0.35
+  },
+  "rise": {
+   "files": [
+    "boom:DESIGNED/RISER/DSGNRise_Swish Big Reverse Swell Tremolo_*.wav"
+   ],
+   "align": "peak",
+   "gain_db": -16,
+   "max_len": 1.2
   }
  }
 }

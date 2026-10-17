@@ -64,7 +64,9 @@ def walk(o, where):
     if isinstance(o, dict):
         for k in list(o):
             if k in ("at", "until") or k.endswith("_at"):
-                if o[k] is not None: o[k] = round(resolve(o[k], f"{where}.{k}"), 3)
+                if isinstance(o[k], list):        # word_at: [..], click_at: [..] — якорь на каждый элемент
+                    o[k] = [None if v is None else round(resolve(v, f"{where}.{k}[{j}]"), 3) for j, v in enumerate(o[k])]
+                elif o[k] is not None: o[k] = round(resolve(o[k], f"{where}.{k}"), 3)
             else: walk(o[k], f"{where}.{k}")
     elif isinstance(o, list):
         for i, x in enumerate(o): walk(x, f"{where}[{i}]")
@@ -86,12 +88,28 @@ for i, p in enumerate(panels):
     if p["until"] <= p["at"]: raise SystemExit(f"panels[{i}]: until {p['until']} ≤ at {p['at']}")
     if i and p["at"] < panels[i - 1]["until"] - 1e-3:
         raise SystemExit(f"panels[{i}] (at {p['at']}) налезает на panels[{i-1}] (до {panels[i-1]['until']})")
-    if p.get("mode", "split") not in ("split", "full"): raise SystemExit(f"panels[{i}]: mode — split или full")
+    if p.get("mode", "split") not in ("split", "full", "pip"): raise SystemExit(f"panels[{i}]: mode — split, full или pip")
     if E:
         for k, s in enumerate(E["segs"]):
             a, b = s["f0"] / E["fps"], (s["f0"] + s["n"]) / E["fps"]
             if s.get("broll") and a < p["until"] - 0.02 and p["at"] < b - 0.02:
                 print(f"! panels[{i}] {p['at']:.2f}–{p['until']:.2f} перекрывает b-roll плана {k} ({a:.2f}–{b:.2f})")
+
+# ---------- подтяжка к долям музыки (beats.json от music_bed.py --sync, 2026-10-17) ----------
+# Вход/выход панели (и с ним переход и вжух) встаёт на ближайшую долю, если она в −0.15…+0.06 с от слова-якоря:
+# картинка чуть раньше слова — нормально (референсы «Editing is Storytelling»), заметно позже — нет. "snap_beats": false — выключить.
+if (WD / "beats.json").exists() and SPEC.get("snap_beats", True):
+    BTS = json.load(open(WD / "beats.json"))["beats"]; moved = []
+    def snap(t, lo=-0.15, hi=0.06):
+        c = [b for b in BTS if lo <= b - t <= hi]
+        return min(c, key=lambda b: abs(b - t)) if c else t
+    for i, p in enumerate(panels):
+        a0, u0 = p["at"], p["until"]; p["at"] = round(snap(a0), 3)
+        if p["until"] < TOTAL - 0.05: p["until"] = round(snap(u0, -0.12, 0.06), 3)
+        if i and p["at"] < panels[i - 1]["until"]: p["at"] = panels[i - 1]["until"]
+        if p["until"] <= p["at"] + 0.3: p["until"] = u0
+        if abs(p["at"] - a0) > 1e-3 or abs(p["until"] - u0) > 1e-3: moved.append(f"{a0:.2f}→{p['at']:.2f} / {u0:.2f}→{p['until']:.2f}")
+    if moved: print("к долям: " + "; ".join(moved))
 
 # ---------- звуки ----------
 DEF = SPEC.get("sounds", {})      # переопределение ролей по умолчанию: {"panel": "whoosh", "step": "pop", "alert": "error"}
@@ -121,12 +139,20 @@ for p in panels:
             if "sound" in s: snd(s["at"], s["sound"])
 sounds.sort(key=lambda x: x["t"])
 
-modes = [dict(s=p["at"], e=p["until"], mode=p.get("mode", "split")) for p in panels]
+# in/out — переход при входе в панель и при выходе (render.py adhd-shorts, transitions.py); pip — карточка с лицом
+modes = []
+for p in panels:
+    m = dict(s=p["at"], e=p["until"], mode=p.get("mode", "split"), **{k: p[k] for k in ("in", "out", "pip", "dir", "tr", "tr_sound") if k in p})
+    fo = p.get("face_off_at")                 # pip: с этого момента лицо уходит, графика остаётся на весь кадр (концовка без камеры)
+    if fo and m["mode"] == "pip" and m["s"] < fo < m["e"]:
+        modes += [dict(m, e=fo), dict(s=fo, e=m["e"], mode="full", **{"in": p.get("face_off_in", "morph"), "tr_sound": p.get("face_off_sound", False)})]
+    else: modes.append(m)
 LAND = SPEC.get("canvas") == "landscape"   # горизонтальный ролик: холст 1312×1080 (левые 2/3 кадра 1920×1080)
 GW, GH = (1312, 1080) if LAND else (1080, 1920)
 out = dict(total=round(TOTAL, 4), split=SPLIT, panels=media(panels), canvas="landscape" if LAND else "portrait")
 (WD / "panels.js").write_text("window.PANELS = " + json.dumps(out, ensure_ascii=False, indent=1) + ";\n")
 json.dump(dict(split=SPLIT, total=round(TOTAL, 4), face_pos=SPEC.get("face_pos", 0.5), modes=modes, sounds=sounds, caption_y=SPEC.get("caption_y", {}),
+               transitions=SPEC.get("transitions"),
                canvas="landscape" if LAND else "portrait", gfx_w=GW, gfx_h=GH),
           open(WD / "layout.json", "w"), ensure_ascii=False, indent=1)
 for p in panels:

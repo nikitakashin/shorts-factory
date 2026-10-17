@@ -12,3 +12,8 @@ for s in latin cyrillic; do
   f=inter-$s-400-italic.woff2; [ -f assets/fonts/$f ] || cp node_modules/@fontsource/inter/files/$f assets/fonts/
   for w in 400 700; do f=jetbrains-mono-$s-$w-normal.woff2; [ -f assets/fonts/$f ] || cp node_modules/@fontsource/jetbrains-mono/files/$f assets/fonts/; done
 done
+# Шрифты моушн-библиотеки (2026-10-17): Unbounded (широкий), Marck Script (рукописный), Oswald (узкий) — Google Fonts, OFL;
+# берутся из локального кэша content-factory (скачаны раньше), в сеть не ходим
+for f in Unbounded MarckScript Oswald; do
+  [ -f assets/fonts/$f.ttf ] || { [ -f "$HOME/.cache/content-factory/fonts/$f.ttf" ] && cp "$HOME/.cache/content-factory/fonts/$f.ttf" assets/fonts/; } || true
+done

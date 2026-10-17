@@ -21,7 +21,7 @@ HTML: описываешь панели в `panels.json`, скрипты дел�
 2. Напиши `$WD/panels.json` (формат ниже). Якоря — слова из `captions.txt`.
 3. Проверь кадры, потом рендер графики:
 ```bash
-U=<путь к скиллу ui-panels>/scripts
+U=~/.claude/skills/ui-panels/scripts
 bash $U/render_gfx.sh $WD --snap 1.5,7.2,12      # лист $WD/gfx_snaps/sheet.jpg — смотри Read'ом
 bash $U/render_gfx.sh $WD                         # → $WD/gfx.mp4 (60 fps; ~2.5× реального времени)
 ```
@@ -53,7 +53,12 @@ bash $U/render_gfx.sh $WD                         # → $WD/gfx.mp4 (60 fps; ~2.
   подстроку; `"СЛОВО>20"` — после 20-й секунды; `"end:СЛОВО"` — конец слова; `"seg:7"` — начало плана;
   сдвиг `+0.3`/`-0.2` в конце. Строка — всегда слово: `"26"` значит сказанное «26», секунды пиши числом.
 - `until` по умолчанию — начало следующей панели. Панели не перекрываются. Между панелями — лицо.
-- `mode`: `split` (графика в верхних 930 px) или `full` (весь кадр; субтитры остаются внизу на 1380).
+- `mode`: `split` (графика в верхних 930 px), `full` (весь кадр; субтитры остаются внизу на 1380) или `pip` (весь кадр,
+  лицо в карточке справа сверху 190–620 px — контент панели ставится ниже, в 660–1340 px; `"pip": {"pos": "tl",
+  "shape": "round"}`). Чередуй раскладки по смыслу — не всё сплитом (автор, 2026-10-17).
+- `in` / `out` — переход при входе в панель и выходе из неё: `morph`, `whip` (+ `dir`: up/left/right/down), `zoom`,
+  `glitch`, `iris`, `flash`, `blur`, `slide`, `cut`. Без них render.py выберет сам из палитры ролика
+  (`"transitions": [...]` в panels.json или `look.transitions` в fx.json). Таблица — adhd-shorts `references/style.md`, «Палитры».
 - `theme`: `dark` (синий градиент) или `light` (бумага в клетку). Смена темы = смена «главы».
 - Блоки в панели стоят столбиком по центру; `at` блока по умолчанию = at панели + 0.15 с × номер.
   Поля панели: `gap` (px между блоками), `align: "top"`, `scale` (масштаб всей колонки), `sound`.
@@ -64,6 +69,15 @@ bash $U/render_gfx.sh $WD                         # → $WD/gfx.mp4 (60 fps; ~2.
 `"canvas": "landscape"` в panels.json → графика 1312×1080 (левые 2/3 кадра 1920×1080); render.py adhd-shorts с
 `"canvas": "landscape"` в fx.json кладёт её слева, лицо — справа. Ширина колонки ~1212 px: `table`/`grid` ставь `width` 1100–1180.
 
+## Моушн-библиотека (2026-10-17)
+По 23 разобранным референсам автора добавлены темы (`noir`, `black`, `poster`, `blueprint`, `neon`, `violet`, `aurora`,
+`charcoal`, `studio`, `grid`, `void`), пресеты появления/исчезновения (`enter`: pop/drop/line/blurin/slide, `exit`:
+implode/drop/fade), слои `layer: over/under`, фон панели `ghost`/`decor` и блоки `kinetic`, `notbut`, `cursor`, `burst`,
+`widgets`, `calendar`, `stack`, `profile`, `board`, `carousel`, `chart`, `chapter`, `phone`, `timeline3d` — **полный
+каталог с полями и откуда приём — `references/motion-library.md`**, витрина всех блоков —
+`<разборы референсов у автора, в репозиторий не входят>/2026-10-17-моушн-разбор/витрина-библиотеки.mp4`. Выбирай под смысл фразы и чередуй темы
+как главы; новые референсы разбирай `scripts/ref_frames.py` и дописывай приёмы в библиотеку.
+
 ## Блоки
 
 | type | Что это | Главные поля |
@@ -71,15 +85,15 @@ bash $U/render_gfx.sh $WD                         # → $WD/gfx.mp4 (60 fps; ~2.
 | `title` | «Первый —» серым + имя в рамке выделения | `pre`, `text`, `size`, `inline` (в строку: «более **300**»), `select:false`, `select_at`, `color`, `sub` |
 | `text` | простая строка | `text`, `size`, `color`, `width` |
 | `readme` | карточка репозитория GitHub | `image` или `hero_text` / `emoji`, `hero_bg`, `name`, `tagline`, `badge` («#3 Repository Of The Day»), `pills: [{text,color}]`, `tabs` |
-| `counter` | огромная цифра + полоса | `steps: [{at, value, color?, bar?, sound?}]`, `suffix` («%»), `prefix` («~»), `decimals`, `dsep` («.»), `label`, `tone` (`good` красн→зел, `bad`, `red`, `green`, «#hex»), `from`, `dur` |
-| `terminal` | окно Claude Code | `prompt: {text, at, type (сек набора, 0 — сразу), strike_at}`, `lines: [{at, tool, arg, out, kind: run/err/dim}` или `{at, text, color: green/red, out}]`, `status: {at, text, tokens: [{at, v}]}` (v — тыс.), `limit: {steps: [{at, v}], label}` (≥95 % — рамка краснеет), `rows`, `title`, `app`, `sub`, `logo: "none"/путь` |
+| `counter` | огромная цифра + полоса | `steps: [{at, value, color?, bar?, sound?}]`, `suffix` («%»), `prefix` («~»), `decimals`, `dsep` («.»), `label` (мелкая подпись — в вертикали не читается, там подпись отдельным `text` size 44, 2026-10-15), `tone` (`good` красн→зел, `bad`, `red`, `green`, «#hex»), `from`, `dur` |
+| `terminal` | окно Claude Code | `prompt: {text, at, type (сек набора, 0 — сразу), strike_at}`, `lines: [{at, tool, arg, out, kind: run/err/dim}` или `{at, text, color: green/red, out}]`, `status: {at, text, tokens: [{at, v}]}` (v — тыс.), `limit: {steps: [{at, v}], label}` (≥95 % — рамка краснеет), `rows`, `title`, `app`, `sub`, `logo: "none"/путь`. В вертикали шрифт терминала мельче субтитров даже при `scale` 1.15 (ширина упирается в кадр) — для читаемых строк бери `table` (font 40) или `title`+`text`, терминал — только как фон-атмосфера (2026-10-15) |
 | `compare` | два варианта + чек-лист | `rows: [{label, prompt, value, unit, extra, tone: bad/good, at}]`, `checklist: {items, at, step}` |
 | `grid` | сетка с тумблерами | `title`, `subtitle`, `icon`, `cols`, `items: [{name, note}]`, `steps: [{at, names: [...] / "*", state: on/fail/off, note, stagger}]`, `cell_font` |
 | `toggle` | «включается сам» + большой тумблер | `label`, `on_at`, `color` |
 | `install` | прогресс установки | `title`, `items: [{name, target %}]`, `blur` (размыть названия — тизер), `dur`, `stagger`, `done_text` |
 | `hub` | центр + ветки к плашкам | `nodes: ["Gemini", {label, icon: "media/x.svg"}]`, `center` («claude» — оранжевая искра, или текст), `color` |
 | `graph` | граф знаний растёт | `steps: [{at, nodes, edges, fill}]` (счётчики под графом), `nodes` (точек), `clusters`, `seed`, `labels` |
-| `pipeline` | колонки этапов, загораются | `stages: [{name, cmd, color, skills: [...]}]`, `steps: [{at, stage}]` |
+| `pipeline` | колонки этапов, загораются | `stages: [{name, cmd, color, skills: [...]}]`, `steps: [{at, stage}]`. Только для горизонтали: в вертикали 4 колонки в 1080 px — текст мельче субтитров (2026-10-15), там бери `grid` `cols: 2` с `note` |
 | `table` | таблица с цифрами, строки проявляются по словам | `cols`, `rows: [{cells, at, hl_at, tone: bad/good}]`, `col_w`, `accent_col`, `font`, `width`, `title` |
 | `image` | скриншот/картинка в карточке | `src`, `width`, `height`, `fit`, `caption`, `card:false` |
 
@@ -101,8 +115,12 @@ bash $U/render_gfx.sh $WD                         # → $WD/gfx.mp4 (60 fps; ~2.
 
 - **Никаких CSS transition/animation** в блоках: кадры рендерятся по времени, всё движение — GSAP-твины
   или драйверы `drive(t => …)` в ui.js (чистая функция времени).
-- `filter: blur` (размытые названия в install) выключает быстрый захват HyperFrames — рендер медленнее,
-  но корректен.
+- **Без `mix-blend-mode` (даже `normal`) и 3D (`perspective`, `preserve-3d`, `rotateX/Y`) у контейнеров с анимацией** —
+  движок уходит в захват скриншотами (2026-10-17, витрина библиотеки). 3D — плоскими приближениями (скос + сжатие).
+- **Никакого `filter: blur` в стилях.** Он выключает быстрый захват HyperFrames: кадры снимаются JPEG-скриншотами —
+  в разы медленнее (25 мин на 11 мин графики) и с потерей качества. Размытие названий в install — через text-shadow (2026-10-14).
+- **Полосы на тёмном фоне.** Градиент dark-темы — ~20 оттенков на кадр, в 8-битном видео он ложится кольцами, а каждое
+  пережатие их усиливает. Поэтому поверх градиента лёгкий шум-дизеринг, gfx.mp4 — CRF 10, render.py — CRF 15.
 - В brew-ffmpeg нет `drawtext` — поэтому снапшоты без подписей времени; порядок кадров = порядок `--snap`.
 - Движок живёт в `~/Movies/Shorts/_gfx` (`GFX_HOME`), код при каждом запуске берётся из скилла —
   правь `engine/src/*` здесь, не там.

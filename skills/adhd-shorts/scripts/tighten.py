@@ -64,7 +64,20 @@ for i, s in enumerate(E["segs"]):
     for p in spans:
         if merged and p[0] - merged[-1][1] < a.gap: merged[-1][1] = max(merged[-1][1], p[1])
         else: merged.append(p)
-    merged = [p for p in merged if p[1] - p[0] >= 0.12]
+    # пауза ВНУТРИ слова по Whisper: он растягивает слово на паузу («будет… [1.3 с] …довольно», 2026-10-14) —
+    # тихие участки (< пол+20 дБ) длиннее 0.4 с внутри куска тоже вырезаем
+    split = []
+    for p0, p1 in merged:
+        k0, k1, cur, run = int(p0 * 100), int(p1 * 100), p0, None
+        for k in range(k0, k1):
+            q = db[k] < F + 20
+            if q and run is None: run = k
+            if (not q or k == k1 - 1) and run is not None:
+                if (k - run) >= 40 and run > k0 + 5 and k < k1 - 5:
+                    split.append([cur, run / 100 + 0.06]); cur = k / 100 - 0.04
+                run = None
+        split.append([cur, p1])
+    merged = [p for p in split if p[1] - p[0] >= 0.12]
     cut += (s["b"] - s["a"]) - sum(p1 - p0 for p0, p1 in merged)
     for j, (p0, p1) in enumerate(merged):
         z = s.get("z", 1.0) if j % 2 == 0 else round(s.get("z", 1.0) * 1.08, 3)

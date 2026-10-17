@@ -26,7 +26,7 @@ def conv(v):
         mm = re.match(r"^(end:)?([^>]+)>([\d.]+)(.*)$", v)
         if mm: return f"{mm.group(1) or ''}{mm.group(2)}>{m(float(mm.group(3)))}{mm.group(4)}"
     return v
-KEYS = {"at", "until", "select_at", "hl_at", "on_at", "strike_at"}
+KEYS = {"at", "until", "select_at", "hl_at", "on_at", "strike_at", "after"}
 def walk(o):
     if isinstance(o, dict):
         for k, v in list(o.items()):

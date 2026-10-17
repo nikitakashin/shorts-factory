@@ -6,22 +6,17 @@
 ## youtube.md
 
 ```markdown
-# <Название — основное>
+# <Название с хештегами — готово к вставке, ≤ 100 символов>   (<N>/100)
 
-## Варианты названия
-1. <…>   ← интрига/вопрос
-2. <…>   ← результат/поворот
-3. <…>   ← эмоция/мем
+## Варианты названия (каждый ≤ 100 символов вместе с хештегами)
+1. <…> #… #…   (<N>/100)   ← бренд + конфликт/цифра
+2. <…> #… #…   (<N>/100)   ← результат/поворот
+3. <…> #… #…   (<N>/100)   ← эмоция/мем
 
 ## Описание
-<2–4 короткие строки: о чём ролик, без спойлера развязки в первой строке>
+<2–4 короткие строки: о чём ролик, без спойлера развязки в первой строке; бренды по именам>
 
-<хештеги одной строкой>
-
-## Хештеги
-- YouTube Shorts: #shorts + 3–5 тематических
-- TikTok: 4–6 (тематические + 1–2 широких: #fyp, #рекомендации)
-- Reels: 5–8
+<8–15 хештегов одной строкой: #shorts + постоянные канала + тематические кластера ролика>
 
 ## Теги YouTube (через запятую)
 <10–15 тегов: тема, бренды из ролика, синонимы, англ. варианты>
@@ -30,15 +25,47 @@
 <вопрос к зрителю, провоцирующий ответы: «А вы где берёте …?»>
 
 ## Заметки
-- Длительность: <N> с. Музыки нет — добавь трендовый звук в приложении (громкость 5–10%).
+- <длительность, музыка, что вырезано>
 - <что было неразборчиво/угадано в субтитрах, мат — цензура в субтитрах, звук оригинальный>
 ```
 
-Правила названия для Shorts/TikTok:
-- ≤ 50 символов, главное слово — в первых 3–4 словах (обрезается в ленте).
+Правила названия (автор, 2026-10-17: «название позволяет до 100 символов… в названии нужно указывать хештеги»):
+- **До 100 символов вместе с хештегами** — это лимит YouTube; пиши рядом счётчик `(N/100)`, чтобы автор не считал сам.
+  Длину считай кодом (`python3 -c 'print(len("…"))'`), не на глаз: на глаз я уже ошибался на 1–2 символа.
+  Смысл — в первых ~40 символах (столько видно в ленте), дальше уточнение и хештеги.
+- **Бренд — в названии и как можно ближе к началу.** По статистике канала названия с брендом и цифрой
+  (Claude $200 → $8000, Zara, 24 ГБ) набирали 870–1260 просмотров, абстрактные — десятки (`content-ideas.md` §1).
+  Компании и продукты называй прямо: Claude, Anthropic, ChatGPT, Gemini, Merlin, Cloudflare, Google, Microsoft.
+- **2–3 хештега в конце названия** — короткие и самые частотные по теме (список — «Хештеги канала» ниже).
+  Не дублируй в хештеге слово, которое уже есть в названии, если есть частотный синоним.
 - Интрига без кликбейта, который ролик не отдаёт: развязка должна совпадать с обещанием.
 - Капс — максимум одно слово; эмодзи — 0–1.
 - Не повторяй название в первой строке описания слово в слово.
+- Блок «Хештеги под YouTube / TikTok / Reels» не пиши — автор публикует только на YouTube (2026-10-17).
+
+### Хештеги канала AI Native Сямыч
+Частотность — со страниц `youtube.com/hashtag/<тег>` (счётчик «N видео • M каналов», все языки, 2026-10-17;
+сырые цифры — `youtube/хештеги-2026-10-17.tsv`). Перепроверять раз в пару месяцев.
+
+**Постоянные (почти в каждое описание):** `#shorts #ии #нейросеть #нейросети #ai #chatgpt #технологии`
+(#ai 38 млн видео, #chatgpt 3 млн, #ии 485 тыс., #технологии 278 тыс., #нейросеть 254 тыс., #нейросети 175 тыс.).
+#shorts — только в описание: в названии он тратит символы и ничего не говорит о теме.
+
+| Тема ролика | 2–3 хештега в название | Добавить в описание |
+|---|---|---|
+| Claude / Anthropic | #claude #claudecode #ии | #anthropic #claudeai |
+| ChatGPT / Gemini / новости и цены ИИ | #chatgpt #gemini #ии | #openai #ainews #technews #gpt |
+| Генерация картинок, локальные модели, Мак | #нейросеть #aiart #macbook | #stablediffusion #opensource #apple |
+| ИИ-агенты, безопасность, взлом | #aiagents #кибербезопасность #ии | #cybersecurity #aiagent #хакер |
+| Вайб-кодинг, программирование, IT | #программирование #vibecoding #айти | #coding #programming #разработка |
+| Разоблачения, цены, «развод» | #разоблачение #chatgpt #нейросети | #бесплатно #лайфхак |
+
+Не брать:
+- `#рекомендации`, `#тренды`, `#шортс` — огромные счётчики, но ни о чём.
+- `#gemini` и `#it` — раздуты чужими смыслами (знак зодиака, слово «it»). Gemini — только в паре с #google или #chatgpt.
+- `#подписка` (в основном «подпишись») и `#развод` (это ещё и развод супругов).
+- Почти пустые русские составные: #ииагенты, #новостиии, #иагент, #нейросетьдляфото. Вместо них — английские #aiagents, #ainews.
+- `#comfyui` — автор Comfy не пользуется.
 
 ## thumb-frames/ и thumbnail-prompt.md
 
@@ -52,25 +79,61 @@
 3 разных обложки и 3 файла (см. «Длинный разбор» в SKILL.md): у каждого свой кадр, свой заголовок (из хука
 именно этого ролика) и свой формат — 16:9 для полного, 9:16 для шортсов.
 
+### Обложка как кадр из фильма, а не «текст, прилепленный в Paint» (автор, 2026-10-16)
+
+Старый шаблон («жёлтые буквы с чёрной обводкой + красная плашка сверху») выглядел как надпись поверх картинки — автор
+попросил «более эпично, чтобы текст был интересно нарисован, что-то качественное». Принципы:
+- **Текст — физический объект в сцене**, а не слой сверху: объёмные 3D-буквы стоят в пространстве, освещены тем же
+  светом, отбрасывают тень, отражаются; человек **частично перекрывает** буквы (голова/плечо заходит на строку) —
+  так видно, что это одна сцена.
+- **Материал букв — из темы ролика** (выбери один, см. таблицу ниже). Плашка — тоже предмет: штамп, ценник,
+  оградительная лента, наклейка на ноутбуке, бегущая строка, неоновая вывеска.
+- **Композиция постера:** одна главная идея и один главный предмет; лицо крупно (≥ 40 % ширины кадра), эмоция
+  утрирована, взгляд в камеру; 3 плана глубины (передний — частицы/искры/осколки, средний — человек и текст,
+  задний — размытая сцена); 2–3 цвета, контровой свет, объёмные лучи. Для 9:16: заголовок в верхней трети,
+  нижние ~25 % кадра без важного (их закрывает интерфейс Shorts). Для 16:9: человек справа, текст слева.
+- **Два варианта текста в одном файле** (A и B разной подачи) — автор выберет, что лучше получится в его нейросети.
+
+| Тема ролика | Подача текста (вставляй в промпт по-английски) |
+|---|---|
+| ИИ, агенты, взлом, баги | glitching holographic 3D letters made of glowing cyan code, scanlines, RGB split, floating in the air |
+| Деньги, цены, подписки, развод | huge 3D extruded gold-and-chrome letters with price-tag edges, coins bursting around, cash-register receipt paper as the label |
+| Поломка, авария, «завис» | heavy cracked metal 3D letters, sparks and smoke, half-melted, orange hazard glow, warning-tape label |
+| Запрет, бан, правила | massive red neon sign letters on a dark wall, one letter flickering, a rubber stamp label "BANNED"-style |
+| Скорость, рендер, монтаж | chrome letters with motion-blur trails and light streaks, as if flying past at speed |
+| Звук, музыка, голос | letters built from glowing waveform bars / speaker grilles, bass-shockwave rings |
+| Мнение, «не нужна», спор | bold graffiti-style 3D letters spray-painted on a brick wall, paint drips, one word crossed out |
+
 ```markdown
 # Обложка: <название ролика>  (<9:16 шортс | 16:9 полное видео>)
 
 ## Кадр
 `thumb-frames/<NN_метка>.jpg` — <почему: эмоция, момент>. Запасной: `<…>`.
 
-## Промпт (на английском, текст — в кавычках по-русски)
-Keep the same person, same face and identity, same hair and clothes. Turn this into a <vertical 9:16 YouTube
-Shorts | horizontal 16:9 YouTube> thumbnail: <усилить эмоцию: exaggerated shocked expression / smug grin…>,
-<предмет темы за спиной/в руке, описан без логотипов брендов: "a laptop with a glowing orange fruit-shaped music app icon">,
-<1 символ-акцент: red stamp / green checkmark / falling money>, saturated colors, strong rim light
-(<цвет 1> and <цвет 2>), shallow depth of field, slight fisheye, comic speed lines. Photorealistic, ultra sharp.
-Big bold headline at the <top | top-left>, 2 lines, heavy sans-serif font (like Montserrat Black), yellow
-#FFE500 letters with thick black outline: "<ЗАГОЛОВОК СТРОКА 1>" / "<СТРОКА 2>". Below it a <red #E61E28>
-rounded label tilted slightly, white bold text: "<ПЛАШКА>". Text must be spelled exactly as written.
+## Промпт — вариант A (<подача текста одним словом: голограмма / золото / неон…>)
+Keep the same person, same face and identity, same hair and clothes. Turn this photo into an epic cinematic
+<vertical 9:16 YouTube Shorts | horizontal 16:9 YouTube> thumbnail, movie-poster quality.
+Subject: <утрированная эмоция: wide-eyed shock / smug grin…>, face large in frame, looking straight at the camera,
+<поза/жест: holding X / pointing at Y>.
+Scene: <одна главная идея темы, предметы описаны с логотипами: "a laptop melting into a puddle of code">,
+three depth layers: <передний план: sparks / glass shards / coins> in the foreground, the person in the middle,
+<задний план> softly blurred behind.
+Headline as a physical 3D object in the scene: the words "<СТРОКА 1>" and "<СТРОКА 2>" made of <материал из
+таблицы>, placed in the upper third, lit by the same light as the person, casting real shadows; the person's
+<head / shoulder> slightly overlaps the bottom of the letters.
+Label as an object: <штамп / ценник / лента / наклейка> with the words "<ПЛАШКА>", integrated into the scene
+<где: stuck on the laptop / tilted across the letters>.
+Lighting and style: dramatic rim light (<цвет 1> and <цвет 2>), volumetric light rays, high contrast, saturated,
+shallow depth of field, slight wide-angle, ultra detailed, photorealistic, 8k.
+All text in Russian, spelled exactly as written, no other text anywhere.
+
+## Промпт — вариант B (<другая подача>)
+<тот же промпт, но другая строка «Headline…» и «Label…» из таблицы — например, вместо голограммы неон на стене>
 
 ## Негатив
-watermark, distorted face, different person, extra fingers, blurry, low contrast, cluttered background,
-misspelled text, extra text, logos
+watermark, distorted face, different person, extra fingers, deformed hands, blurry, low contrast, flat lighting,
+text pasted on top, plain flat text, sticker-like text, cluttered background, misspelled text, extra text,
+random letters
 ```
 
 Почему так:
@@ -81,3 +144,6 @@ misspelled text, extra text, logos
 - Логотипы брендов описывай словами («orange fruit-shaped icon»): так модель не рисует кривой логотип,
   и обложка не выглядит как официальный материал бренда.
 - 9:16: заголовок сверху, низ кадра в ленте Shorts закрыт интерфейсом и названием. 16:9: человек справа, текст слева.
+- «text pasted on top, plain flat text, sticker-like text» в негативе + «physical 3D object… casting real shadows…
+  person overlaps the letters» в промпте — именно это убирает эффект «подписи в Paint».
+- Не называй цвета кодами (#FFE500): модель рисует их как текст или игнорирует; пиши словами («warm yellow»).

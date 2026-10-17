@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1920, height=1080" />
+<title>Chapter cards</title>
+<style>
+@font-face { font-family: "Inter"; font-weight: 500; src: url("assets/fonts/inter-cyrillic-500-normal.woff2") format("woff2"); unicode-range: U+0400-045F; }
+@font-face { font-family: "Inter"; font-weight: 500; src: url("assets/fonts/inter-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 700; src: url("assets/fonts/inter-cyrillic-700-normal.woff2") format("woff2"); unicode-range: U+0400-045F; }
+@font-face { font-family: "Inter"; font-weight: 700; src: url("assets/fonts/inter-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-weight: 800; src: url("assets/fonts/inter-cyrillic-800-normal.woff2") format("woff2"); unicode-range: U+0400-045F; }
+@font-face { font-family: "Inter"; font-weight: 800; src: url("assets/fonts/inter-latin-800-normal.woff2") format("woff2"); }
+@font-face { font-family: "JBM"; font-weight: 400; src: url("assets/fonts/jetbrains-mono-cyrillic-400-normal.woff2") format("woff2"); unicode-range: U+0400-045F; }
+@font-face { font-family: "JBM"; font-weight: 400; src: url("assets/fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "JBM"; font-weight: 700; src: url("assets/fonts/jetbrains-mono-cyrillic-700-normal.woff2") format("woff2"); unicode-range: U+0400-045F; }
+@font-face { font-family: "JBM"; font-weight: 700; src: url("assets/fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Mont"; font-weight: 100 900; src: url("assets/fonts/Montserrat.ttf") format("truetype"); }
+@font-face { font-family: "Osw"; font-weight: 200 700; src: url("assets/fonts/Oswald.ttf") format("truetype"); }
+
+:root { --y: #FFE500; --r: #E61E28; --blue: #2f7cf6; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#root { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; font-family: "Inter", sans-serif; color: #eef1f6; }
+.slot { position: absolute; inset: 0; visibility: hidden; }
+.still { position: absolute; inset: 0; width: 1920px; height: 1080px; object-fit: cover; }
+.card { position: absolute; inset: 0; overflow: hidden; }
+.abs { position: absolute; }
+/* шум поверх градиента — дизеринг против полос в 8-битном видео */
+.noise { position: absolute; inset: 0; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='256' height='256'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.045 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"); }
+.navy { background: radial-gradient(ellipse 70% 60% at 50% 40%, #223049 0%, #161d2a 55%, #0b1017 100%); }
+
+/* 1. Фигма */
+.d1 .label { left: 0; right: 0; top: 262px; text-align: center; font-family: "JBM"; font-size: 34px; letter-spacing: 6px; color: #8fa3c4; }
+.d1 .row { left: 0; right: 0; top: 380px; display: flex; justify-content: center; }
+.d1 .wrap { position: relative; padding: 18px 44px; }
+.d1 .title { font-weight: 800; letter-spacing: -3px; color: #fff; line-height: 1; white-space: nowrap; }
+.d1 .sel { position: absolute; inset: 0; border: 3px solid var(--blue); transform-origin: left center; }
+.d1 .h { position: absolute; width: 18px; height: 18px; background: #fff; border: 3px solid var(--blue); }
+.d1 .tag { position: absolute; left: 0; top: -44px; background: var(--blue); color: #fff; font-size: 22px; font-weight: 700; padding: 5px 12px; border-radius: 4px; transform-origin: left bottom; white-space: nowrap; }
+.d1 .lead { left: 0; right: 0; top: 650px; text-align: center; font-weight: 500; font-size: 48px; color: #c9d3e3; }
+.d1 .cursor { display: inline-block; width: 4px; height: 52px; background: var(--y); vertical-align: -8px; margin-left: 6px; }
+.dots { display: flex; gap: 18px; align-items: center; }
+.d1 .dots { left: 0; right: 0; top: 860px; justify-content: center; }
+.dot { width: 14px; height: 14px; border-radius: 7px; background: rgba(255,255,255,.18); }
+.d1 .dot.on { width: 54px; background: var(--y); }
+
+/* 2. Оглавление */
+.d2 .head { left: 150px; top: 90px; font-family: "JBM"; font-size: 30px; letter-spacing: 6px; color: #8fa3c4; }
+.d2 .list { left: 150px; top: 150px; width: 860px; }
+.d2 .it { position: relative; display: flex; align-items: center; font-weight: 700; color: #5d6676; white-space: nowrap; }
+.d2 .it .n { font-family: "JBM"; font-weight: 400; width: 76px; color: #3f4756; }
+.d2 .it.done { color: #8a94a6; } .d2 .it.done .n { color: #5d6676; }
+.d2 .bar { position: absolute; left: -30px; right: -40px; top: 5px; bottom: 5px; background: var(--y); border-radius: 12px; transform-origin: left center; }
+.d2 .it.cur, .d2 .it.cur .n { color: #0b0f15; }
+.d2 .it .txt, .d2 .it .n { position: relative; }
+.d2 .side { left: 1110px; top: 300px; width: 680px; }
+.d2 .q { font-weight: 800; font-size: 76px; line-height: 1.05; color: #fff; }
+.d2 .a { margin-top: 36px; font-weight: 500; font-size: 46px; line-height: 1.25; color: #8fa3c4; }
+.d2 .vline { left: 1060px; top: 150px; width: 3px; height: 820px; background: rgba(255,255,255,.08); transform-origin: top; }
+
+/* 3. Жёлтый удар */
+.d3 .ybg { inset: 0; background: var(--y); transform-origin: left center; }
+.d3 .tape { left: -100px; width: 2200px; height: 70px; background: repeating-linear-gradient(-45deg, #0b0b0b 0 40px, var(--y) 40px 80px); }
+.d3 .num { right: 110px; top: 120px; font-family: "Osw"; font-weight: 700; font-size: 560px; line-height: 1; color: #0b0b0b; letter-spacing: -10px; }
+.d3 .kick { left: 140px; top: 270px; font-family: "Mont"; font-weight: 800; font-size: 44px; letter-spacing: 4px; color: #0b0b0b; }
+.d3 .title { left: 130px; top: 330px; width: 1150px; font-family: "Mont"; font-weight: 900; line-height: .95; color: #0b0b0b; letter-spacing: -4px; }
+.d3 .lead { left: 140px; top: 740px; max-width: 1300px; background: #0b0b0b; color: #fff; font-family: "Mont"; font-weight: 800; font-size: 46px; padding: 22px 34px; border-radius: 18px; transform-origin: left center; }
+
+/* 4. Терминал */
+.d4 .bg { inset: 0; background: #07090d; }
+.d4 .win { left: 260px; top: 150px; width: 1400px; height: 780px; background: #0d1117; border: 2px solid #232a36; border-radius: 22px; overflow: hidden; }
+.d4 .bar { height: 64px; background: #141a23; display: flex; align-items: center; padding: 0 26px; gap: 14px; font-family: "JBM"; font-size: 24px; color: #6b7587; }
+.d4 .b { width: 18px; height: 18px; border-radius: 9px; }
+.d4 .body { padding: 48px 60px; font-family: "JBM"; font-size: 36px; line-height: 1.7; color: #c9d1d9; }
+.d4 .pr { color: #d97757; } .d4 .dim { color: #5c6573; } .d4 .ok { color: #2fd36b; }
+.d4 .big { font-weight: 700; line-height: 1.15; color: #d97757; margin: 22px 0 18px; white-space: nowrap; }
+.d4 .prog { display: flex; align-items: center; gap: 24px; margin-top: 18px; }
+.d4 .track { width: 560px; height: 22px; background: #1d2430; border-radius: 11px; overflow: hidden; }
+.d4 .fill { height: 100%; width: 100%; background: #d97757; transform-origin: left center; }
+.d4 .flash { inset: 0; background: #fff; }
+
+/* 5. Кинетика */
+.d5 .bg { inset: 0; background: #07090d; }
+.d5 .num { left: 1060px; top: -120px; font-family: "Osw"; font-weight: 700; font-size: 1150px; line-height: 1; color: transparent; -webkit-text-stroke: 5px var(--y); white-space: nowrap; }
+.d5 .lines { left: 140px; top: 300px; }
+.d5 .ln { overflow: hidden; }
+.d5 .ln span { display: block; font-family: "Mont"; font-weight: 900; color: #fff; letter-spacing: -5px; white-space: nowrap; }
+.d5 .ul { left: 145px; width: 520px; height: 16px; background: var(--r); transform-origin: left center; }
+.d5 .kick { left: 145px; top: 230px; font-family: "JBM"; font-size: 32px; letter-spacing: 8px; color: var(--y); }
+.d5 .lead { left: 145px; width: 1000px; font-weight: 500; font-size: 46px; line-height: 1.3; color: #b8c2d3; }
+.d5 .dots { left: 145px; top: 960px; gap: 16px; }
+.d5 .dot.done { background: rgba(255,255,255,.55); }
+.d5 .dot.on { width: 120px; background: var(--r); }
+</style>
+<script src="assets/js/gsap.min.js"></script>
+<script src="assets/cards.js"></script>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-duration="5" data-width="1920" data-height="1080"></div>
+<script>
+(() => {
+  const C = window.CARDS, D = C.slot, root = document.getElementById("root");
+  root.dataset.duration = String(C.cards.length * D);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const pad = n => String(n).padStart(2, "0");
+  const ORD = ["ПЕРВАЯ", "ВТОРАЯ", "ТРЕТЬЯ", "ЧЕТВЁРТАЯ", "ПЯТАЯ", "ШЕСТАЯ", "СЕДЬМАЯ", "ВОСЬМАЯ", "ДЕВЯТАЯ", "ДЕСЯТАЯ", "ОДИННАДЦАТАЯ", "ДВЕНАДЦАТАЯ", "ТРИНАДЦАТАЯ", "ЧЕТЫРНАДЦАТАЯ", "ПЯТНАДЦАТАЯ"];
+  const dots = (k, n, on, done) => Array.from({ length: n }, (_, i) => `<i class="dot${i + 1 === k ? " " + on : i + 1 < k && done ? " done" : ""}"></i>`).join("");
+  // перенос заголовка по словам на ≤ maxLines строк примерно равной длины
+  const lines = (s, maxLines) => {
+    const w = s.split(/\s+/); if (w.length <= 1 || maxLines <= 1) return [s];
+    let best = [s];
+    for (let L = 2; L <= maxLines; L++) {
+      const tgt = s.length / L, out = []; let cur = "";
+      for (const x of w) { if (cur && (cur + " " + x).length > tgt * 1.25 && out.length < L - 1) { out.push(cur); cur = x; } else cur = cur ? cur + " " + x : x; }
+      out.push(cur); const m = Math.max(...out.map(l => l.length));
+      if (m < Math.max(...best.map(l => l.length))) best = out;
+    }
+    return best;
+  };
+  const fit = (chars, width, k, max, min) => Math.max(min, Math.min(max, Math.floor(width / (chars * k))));
+
+  const HTML = {
+    1: c => { const fs = fit(c.title.length, 1500, .6, 150, 80); return `<div class="card navy"><div class="noise"></div>
+      <div class="abs label">ГЛАВА ${pad(c.n)} / ${pad(c.total)}</div>
+      <div class="abs row"><div class="wrap"><div class="title" style="font-size:${fs}px">${esc(c.title)}</div><div class="sel"></div>
+        <i class="h" style="left:-11px;top:-11px"></i><i class="h" style="right:-11px;top:-11px"></i><i class="h" style="left:-11px;bottom:-11px"></i><i class="h" style="right:-11px;bottom:-11px"></i>
+        <div class="tag">Frame · Глава ${c.n}</div></div></div>
+      <div class="abs lead"><span class="ty" data-text="${esc(c.lead)}"></span><span class="cursor"></span></div>
+      <div class="abs dots">${dots(c.n, c.total, "on")}</div></div>`; },
+    2: c => { const n = c.list.length, ih = Math.min(82, Math.floor(820 / n)), fs = Math.min(42, Math.floor(ih * .52));
+      return `<div class="card navy"><div class="noise"></div><div class="abs head">СОДЕРЖАНИЕ</div><div class="abs vline"></div>
+      <div class="abs list">${c.list.map((t, i) => `<div class="it${i + 1 < c.n ? " done" : ""}${i + 1 === c.n ? " cur" : ""}" style="height:${ih}px;font-size:${fs}px">${i + 1 === c.n ? '<i class="bar"></i>' : ""}<span class="n" style="font-size:${Math.round(fs * .75)}px">${pad(i + 1)}</span><span class="txt">${esc(t)}</span></div>`).join("")}</div>
+      <div class="abs side"><div class="q" style="font-size:${fit(c.title.length, 2 * 680, .58, 76, 54)}px">${esc(c.title)}</div><div class="a">${esc(c.lead)}</div></div></div>`; },
+    3: c => { const T = c.title.toUpperCase(), L = lines(T, 3), fs = fit(Math.max(...L.map(l => l.length)), 1150, .72, 150, 80);
+      return `<div class="card"><div class="abs ybg"></div><div class="abs tape" style="top:40px"></div><div class="abs tape" style="top:970px"></div>
+      <div class="abs num">${pad(c.n)}</div><div class="abs kick">ГЛАВА ${c.n}</div>
+      <div class="abs title" style="font-size:${fs}px">${L.map(esc).join("<br/>")}</div>
+      <div class="abs lead" style="top:${330 + L.length * fs * .95 + 60}px">${esc(c.lead)}</div></div>`; },
+    4: c => { const T = c.title.toUpperCase(), fs = fit(T.length, 1280, .6, 104, 50);
+      return `<div class="card"><div class="abs bg"></div><div class="abs win">
+      <div class="bar"><i class="b" style="background:#ff5f57"></i><i class="b" style="background:#febc2e"></i><i class="b" style="background:#28c840"></i><span style="margin-left:20px">claude — ~/videos/shorts-pipeline</span></div>
+      <div class="body"><div><span class="pr">❯ </span><span class="ty" data-text="следующая глава"></span></div>
+        <div class="l1 dim">● Read(chapters.md) — ${c.total} глав</div><div class="l2 ok">✓ Глава ${c.n} из ${c.total}</div>
+        <div class="big" style="font-size:${fs}px"><span class="ty" data-text="${esc(T)}"></span></div>
+        <div class="l3 dim">✻ <span class="ty" data-text="${esc(c.lead)}"></span></div>
+        <div class="prog l4"><div class="track"><div class="fill"></div></div><span class="dim">${c.n} / ${c.total}</span></div></div></div>
+      <div class="abs flash"></div></div>`; },
+    5: c => { const T = c.title.toUpperCase(), L = lines(T, 3), fs = fit(Math.max(...L.map(l => l.length)), 1250, .74, 160, 84), lh = Math.round(fs * 1.09), top = 300;
+      return `<div class="card"><div class="abs bg"></div><div class="noise"></div><div class="abs num">${c.n}</div>
+      <div class="abs kick">ГЛАВА ${ORD[c.n - 1] || c.n}</div>
+      <div class="abs lines">${L.map(l => `<div class="ln" style="height:${lh}px"><span style="font-size:${fs}px;line-height:${lh}px">${esc(l)}</span></div>`).join("")}</div>
+      <div class="abs ul" style="top:${top + L.length * lh + 20}px"></div>
+      <div class="abs lead" style="top:${top + L.length * lh + 70}px">${esc(c.lead)}</div>
+      <div class="abs dots">${dots(c.n, c.total, "on", true)}</div></div>`; },
+  };
+
+  const q = (s, r) => r.querySelector(s), qa = (s, r) => [...r.querySelectorAll(s)];
+  const typers = [];
+  const type = (el, t0, cps) => typers.push({ el, t0, cps, text: el.dataset.text });
+  const drive = t => { for (const p of typers) { const n = Math.max(0, Math.min(p.text.length, Math.floor((t - p.t0) * p.cps))); if (p.el.__n !== n) { p.el.textContent = p.text.slice(0, n); p.el.__n = n; } } };
+  const tl = gsap.timeline({ paused: true, onUpdate: () => drive(tl.time()) });
+
+  // время внутри слота: IN — начало въезда, OUT — начало ухода (после него виден первый кадр следующей главы)
+  const IN = C.in, OUT = C.out;
+  const BUILD = {
+    1: (c, T) => {
+      tl.fromTo(c, { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: .55, ease: "power3.inOut" }, T + IN);
+      tl.from(q(".label", c), { y: 24, opacity: 0, duration: .4, ease: "power2.out" }, T + IN + .35);
+      tl.from(q(".title", c), { y: 60, opacity: 0, duration: .55, ease: "power3.out" }, T + IN + .45);
+      tl.from(q(".sel", c), { scaleX: 0, duration: .45, ease: "power3.out" }, T + IN + .75);
+      tl.from(qa(".h", c), { scale: 0, duration: .25, stagger: .05, ease: "back.out(3)" }, T + IN + 1.05);
+      tl.from(q(".tag", c), { scale: 0, duration: .3, ease: "back.out(2.5)" }, T + IN + 1.1);
+      tl.from(qa(".dot", c), { scale: 0, duration: .25, stagger: .03, ease: "back.out(2)" }, T + IN + .7);
+      const ty = q(".ty", c); type(ty, T + IN + 1.25, Math.max(30, ty.dataset.text.length / (OUT - IN - 1.6)));
+      tl.fromTo(q(".cursor", c), { opacity: 1 }, { opacity: 0, duration: .01, repeat: 7, yoyo: true, repeatDelay: .24 }, T + IN + 1.25);
+      tl.to(c, { clipPath: "inset(0% 0% 100% 0%)", duration: .5, ease: "power3.inOut" }, T + OUT);
+    },
+    2: (c, T) => {
+      tl.fromTo(c, { xPercent: -100 }, { xPercent: 0, duration: .6, ease: "power3.out" }, T + IN);
+      tl.from(qa(".it", c), { x: -60, opacity: 0, duration: .35, stagger: .04, ease: "power2.out" }, T + IN + .3);
+      tl.from(q(".vline", c), { scaleY: 0, duration: .5, ease: "power2.out" }, T + IN + .4);
+      tl.from(q(".bar", c), { scaleX: 0, duration: .45, ease: "power3.out" }, T + IN + 1.0);
+      tl.fromTo(q(".it.cur", c), { color: "#5d6676" }, { color: "#0b0f15", duration: .2 }, T + IN + 1.1);
+      tl.to(q(".it.cur", c), { x: 26, duration: .45, ease: "back.out(2)" }, T + IN + 1.0);
+      tl.from(q(".q", c), { y: 40, opacity: 0, duration: .5, ease: "power3.out" }, T + IN + 1.2);
+      tl.from(q(".a", c), { y: 30, opacity: 0, duration: .5, ease: "power3.out" }, T + IN + 1.6);
+      tl.to(c, { xPercent: 100, duration: .55, ease: "power3.in" }, T + OUT);
+    },
+    3: (c, T) => {
+      tl.from(q(".ybg", c), { scaleX: 0, duration: .4, ease: "power4.out" }, T + IN);
+      tl.from(qa(".tape", c), { xPercent: i => i ? 30 : -30, opacity: 0, duration: .5, ease: "power2.out" }, T + IN + .2);
+      tl.from(q(".num", c), { x: 500, opacity: 0, duration: .55, ease: "power4.out" }, T + IN + .25);
+      tl.from(q(".kick", c), { y: 20, opacity: 0, duration: .3 }, T + IN + .4);
+      tl.from(q(".title", c), { y: 80, opacity: 0, duration: .45, ease: "back.out(1.6)" }, T + IN + .45);
+      tl.fromTo(q(".lead", c), { scale: 0, rotation: -12 }, { scale: 1, rotation: -2, duration: .5, ease: "back.out(2.2)" }, T + IN + 1.0);
+      tl.to(q(".num", c), { x: -30, duration: OUT - IN - .8, ease: "none" }, T + IN + .8);
+      tl.to(qa(".tape", c), { xPercent: i => i ? -4 : 4, duration: OUT - IN - .7, ease: "none" }, T + IN + .7);
+      tl.to(c, { xPercent: 100, duration: .45, ease: "power4.in" }, T + OUT);
+    },
+    4: (c, T) => {
+      const w = q(".win", c), tys = qa(".ty", c);
+      tl.fromTo(c, { opacity: 0 }, { opacity: 1, duration: .15 }, T + IN);
+      tl.fromTo(q(".flash", c), { opacity: .9 }, { opacity: 0, duration: .35 }, T + IN);
+      tl.from(w, { scale: 1.12, opacity: 0, duration: .5, ease: "power3.out" }, T + IN + .05);
+      type(tys[0], T + IN + .4, 30);
+      tl.from(q(".l1", c), { opacity: 0, duration: .01 }, T + IN + .95);
+      tl.from(q(".l2", c), { opacity: 0, duration: .01 }, T + IN + 1.15);
+      type(tys[1], T + IN + 1.3, Math.max(22, tys[1].dataset.text.length / .7));
+      type(tys[2], T + IN + 2.0, Math.max(45, tys[2].dataset.text.length / (OUT - IN - 2.3)));
+      tl.from(q(".l4", c), { opacity: 0, duration: .2 }, T + IN + 1.8);
+      const k = C.cards[+c.dataset.i], f0 = (k.n - 1) / k.total, f1 = k.n / k.total;
+      tl.fromTo(q(".fill", c), { scaleX: f0 }, { scaleX: f1, duration: .6, ease: "power2.out" }, T + IN + 1.9);
+      tl.to(w, { scaleY: .01, duration: .25, ease: "power3.in" }, T + OUT).to(w, { scaleX: 0, duration: .15, ease: "power3.in" }, T + OUT + .25);
+      tl.to(c, { opacity: 0, duration: .15 }, T + OUT + .35);
+    },
+    5: (c, T) => {
+      tl.fromTo(c, { clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(75% at 50% 50%)", duration: .6, ease: "power3.inOut" }, T + IN);
+      tl.fromTo(q(".num", c), { scale: 1.5, opacity: 0 }, { scale: 1, opacity: 1, duration: .8, ease: "power3.out" }, T + IN + .1);
+      tl.to(q(".num", c), { x: -60, y: 20, duration: OUT - IN - .8, ease: "none" }, T + IN + .8);
+      tl.from(q(".kick", c), { opacity: 0, y: 16, duration: .35 }, T + IN + .35);
+      tl.from(qa(".ln span", c), { yPercent: 100, duration: .55, stagger: .12, ease: "power4.out" }, T + IN + .4);
+      tl.from(q(".ul", c), { scaleX: 0, duration: .45, ease: "power3.out" }, T + IN + .85);
+      tl.from(q(".lead", c), { opacity: 0, y: 24, duration: .5, ease: "power2.out" }, T + IN + 1.1);
+      tl.from(qa(".dot", c), { scale: 0, duration: .25, stagger: .03, ease: "back.out(2)" }, T + IN + 1.0);
+      tl.to(c, { clipPath: "circle(0% at 50% 50%)", duration: .5, ease: "power3.inOut" }, T + OUT);
+    },
+  };
+
+  C.cards.forEach((k, i) => {
+    const s = document.createElement("div"); s.className = "slot";
+    s.innerHTML = `<img class="still" src="${k.prev}" /><img class="still nxt" src="${k.next}" />` + HTML[k.design](k);
+    root.appendChild(s);
+    const c = q(".card", s); c.classList.add("d" + k.design); c.dataset.i = i;
+    const T = i * D;
+    tl.set(s, { visibility: "visible" }, T).set(s, { visibility: "hidden" }, T + D - 0.001);
+    tl.set(q(".nxt", s), { opacity: 0 }, T).set(q(".nxt", s), { opacity: 1 }, T + OUT - .05);
+    BUILD[k.design](c, T);
+  });
+  tl.set({}, {}, C.cards.length * D);
+  window.__timelines = window.__timelines || {};
+  window.__timelines["main"] = tl;
+  drive(0);
+})();
+</script>
+</body>
+</html>

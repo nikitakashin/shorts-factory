@@ -1,18 +1,12 @@
 {
  "hook": {
-  "text": "2 ГОДА ИСКАЛ\nFL 26 НА MAC",
+  "text": "2 года искал\nFL 26 на Mac",
   "dur": 2.6,
   "sound": "pop"
  },
  "_comment": "Реальный конфиг шортса «FL Studio 26 на Mac» (one-take селфи 2:32 → 58 с). at: слово из captions.txt (ищется подстрокой, after — искать после N сек), число секунд или \"seg:N\". Звуки: kit — набор сэмплов, sound у стикера/boom/sounds — роль из kit или glob; без kit звуки синтезируются.",
  "caption": {
-  "y": 1380,
-  "size": 118,
-  "max_words": 2,
-  "max_chars": 13,
-  "color": "#FFFFFF",
-  "active": "#FFE500",
-  "stroke": 12
+  "y": 1380
  },
  "face_y": 800,
  "fixes": {
