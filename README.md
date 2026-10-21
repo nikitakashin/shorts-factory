@@ -7,6 +7,7 @@
 | Скилл | Что делает |
 |---|---|
 | [`adhd-shorts`](skills/adhd-shorts/SKILL.md) | Весь конвейер: расшифровка → монтаж «в упор» без пауз и дублей → голос → звуки → субтитры, стикеры, зумы → −14 LUFS → название, описание, хештеги, промпт обложки. Плюс черновик CapCut, чтобы править самому |
+| [`just-another-youtube-seo-generator`](skills/just-another-youtube-seo-generator/SKILL.md) | SEO-упаковка по фактам: подсказки поиска YouTube + конкуренты из топа (с ключом YouTube Data API точнее, без ключа через yt-dlp, vidIQ MCP по желанию) → название, описание, хештеги, теги, закреп; валидатор режет всё, чего нет в данных или в ролике. Вызывается из `adhd-shorts` на шаге упаковки |
 | [`ui-panels`](skills/ui-panels/SKILL.md) | Инфографика «под интерфейсы»: терминал, таблицы, счётчики, карточка GitHub, сетки с тумблерами — по словам из расшифровки. Сплит «графика сверху / лицо снизу» или горизонталь «графика слева / лицо справа» |
 
 ## Что умеет
@@ -35,7 +36,8 @@
 - По желанию:
   - **Claude in Chrome** + аккаунт на podcast.adobe.com — для чистки голоса в Adobe Podcast Enhance;
   - свой **пресет FL Studio** (`.fst`) и установленные VST3-плагины из него — для своей цепочки на голосе;
-  - **CapCut** desktop 9.x — для черновиков.
+  - **CapCut** desktop 9.x — для черновиков;
+  - **ключ YouTube Data API** (`YOUTUBE_API_KEY`) — SEO-скилл точнее видит конкурентов; без него работает через `yt-dlp` (`brew install yt-dlp`).
 
 ## Установка
 
@@ -44,6 +46,7 @@ git clone <ссылка на этот репозиторий> ~/ai-shorts-skills
 mkdir -p ~/.claude/skills
 ln -s ~/ai-shorts-skills/skills/adhd-shorts ~/.claude/skills/adhd-shorts
 ln -s ~/ai-shorts-skills/skills/ui-panels   ~/.claude/skills/ui-panels
+ln -s ~/ai-shorts-skills/skills/just-another-youtube-seo-generator ~/.claude/skills/just-another-youtube-seo-generator
 ```
 Скиллы в `~/.claude/skills` видны во всех проектах. Можно положить и в `<проект>/.claude/skills`.
 

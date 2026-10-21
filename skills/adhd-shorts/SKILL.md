@@ -31,7 +31,7 @@ description: Полный конвейер «сырой вантейк → го�
 Справочники (читай по мере надобности):
 - `references/style.md` — приёмы, тайминги, стикеры, звуки Boom One. Перед планированием эффектов.
 - `references/meme_sounds.md` — мемные звуки по смыслу. Когда ставишь звуки на стикеры.
-- `references/package.md` — шаблоны youtube.md и thumbnail-prompt.md. На шаге упаковки.
+- `references/package.md` — шаблоны youtube.md и thumbnail-prompt.md. На шаге упаковки. Текст youtube.md пишет `just-another-youtube-seo-generator` (по данным поиска), здесь — формат и обложка.
 - `assets/edl.example.json`, `assets/fx.example.json` — конфиги реального ролика.
 
 ## Что на выходе
@@ -251,8 +251,17 @@ OCR слаб на словах из 1–2 букв — такие промахи
 ```bash
 uv run --script $S/thumb_frames.py $WD "$ПАПКА/thumb-frames"
 ```
-Посмотри `thumb-frames/_sheet.jpg`, выбери кадр и напиши `youtube.md` и `thumbnail-prompt.md` по
-шаблонам из `references/package.md`. Обложка — как кадр из фильма: заголовок объёмными буквами из материала темы
+**Название, описание, хештеги и теги — через скилл `just-another-youtube-seo-generator`**, а не из головы: он берёт подсказки поиска YouTube и
+упаковку роликов из топа, пишет пакет только из этих данных и расшифровки, а валидатор не пропускает выдуманные хештеги и теги. Запуск:
+```bash
+SEO=<путь к скиллу just-another-youtube-seo-generator>/scripts
+uv run --script $SEO/research.py "<как человек ищет такой ролик>" --format shorts --out $WD/seo
+# → пиши $WD/seo.json по SKILL.md того скилла, затем:
+uv run --script $SEO/validate.py $WD/seo.json --research $WD/seo/seo_research.json --transcript $WD/words_out.json --md "$ПАПКА/youtube.md"
+```
+Ключ YouTube Data API необязателен (без него работает yt-dlp). Тема для запроса — то, что ищут, а не пересказ сценария; хук из `fx.json` на название не переносим.
+Посмотри `thumb-frames/_sheet.jpg`, выбери кадр и напиши `thumbnail-prompt.md` по шаблону из `references/package.md`.
+Обложка — как кадр из фильма: заголовок объёмными буквами из материала темы
 внутри сцены (человек перекрывает буквы), плашка — предмет, два варианта подачи текста (A/B). Не «жёлтый текст с
 обводкой поверх» — автор: «будто в пэинте прилепили» (2026-10-16). Обложку автор делает из своего кадра в своей нейросети (не Comfy; текст она рисует сама — заголовок в промпт),
 поэтому промпт — для редактирования кадра; заголовок и плашка — в самом промпте, слово в слово.
