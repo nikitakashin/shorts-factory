@@ -17,7 +17,8 @@
 
 Дальше каждый план режется из исходника, ускоряется atempo (тон не меняется), обрезается ровно
 под целое число кадров (иначе за 20 склеек звук уплывает от картинки), края — микрофейды 8/15 мс.
-b-roll (broll: true) идёт без звука. "voice_fx": "anull" — без обработки (голос чистят Adobe и цепочка).
+b-roll (broll: true) идёт без звука. "asrc" у плана — звук из другого файла в тех же секундах (TTS-собеседник,
+наложенный на время исходника; ставь ему "snap": false). "voice_fx": "anull" — без обработки (голос чистят Adobe и цепочка).
 Пишет voice.wav и edl_out.json (+ n кадров и f0 у каждого плана)."""
 import json, os, subprocess, sys
 import numpy as np, soundfile as sf
@@ -89,7 +90,7 @@ for i, s in enumerate(segs):
     else:
         vol = f",volume={s['vol']}" if "vol" in s else ""
         af = f"{atempo(sp)},apad,atrim=0:{out},afade=t=in:d=0.008,afade=t=out:st={max(0, out-0.015)}:d=0.015{vol}"
-        cmd = ["ffmpeg", "-v", "error", "-y", "-ss", f"{s['a']}", "-t", f"{s['b']-s['a']+0.05}", "-i", E["src"],
+        cmd = ["ffmpeg", "-v", "error", "-y", "-ss", f"{s['a']}", "-t", f"{s['b']-s['a']+0.05}", "-i", s.get("asrc", E["src"]),   # "asrc" — свой звук плана (вопросы TTS в скетче)
                "-vn", "-af", af, "-ar", "48000", "-ac", "2", f]
     subprocess.run(cmd, check=True)
     lst.append(f"file '{os.path.abspath(f)}'"); total += n

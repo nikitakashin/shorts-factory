@@ -392,7 +392,8 @@ def put(sig, t, g):
     k = int(max(0, t) * SR); sig = sig[: max(0, len(sfx) - k)]; sfx[k:k + len(sig)] += sig * g
 cuts = [k for k in range(1, len(E["segs"]))   # вжух на склейке, где меняется крупность или начинается/кончается b-roll
         if (E["segs"][k].get("z", 1) != E["segs"][k - 1].get("z", 1) or E["segs"][k].get("broll") or E["segs"][k - 1].get("broll"))
-        and not E["segs"][k].get("tail")]       # tail — хвост после речи под графикой: без вжуха и тиканья
+        and not E["segs"][k].get("tail")       # tail — хвост после речи под графикой: без вжуха и тиканья
+        and not E["segs"][k].get("no_whoosh")]  # ответ в скетче-пинг-понге падает «всухую», без вжуха
 brolls = [(seg_t[k], s["n"] / FPS) for k, s in enumerate(E["segs"]) if s.get("broll") and not s.get("endcard") and not s.get("tail")]
 
 # --- библиотека сэмплов (fx.json "kit": путь к kit-файлу; относительный — от assets/ скилла) ---
@@ -725,7 +726,7 @@ for k, s in enumerate(E["segs"]):
                     if id(f_) not in _bp: _bp[id(f_)] = bg_blur(f_, _m); _m = _bp[id(f_)][1]
                     pre[i_], pre_m[i_] = _bp[id(f_)]
             if best: print(f"первый кадр: держу резкий кадр с лицом ({best / FPS:.2f} с стоп-кадра)")
-    got = len(pre); bgm = cur_m = None; use_bg = BG is not None and not s.get("broll") and not s.get("endcard")
+    got = len(pre); bgm = cur_m = None; use_bg = BG is not None and not s.get("broll") and not s.get("endcard") and s.get("bg", True) is not False
     if s.get("endcard") and EC_BG is not None:
         for j in range(s["n"]):
             fr = endcard_frame(j / max(1, s["n"] - 1))
