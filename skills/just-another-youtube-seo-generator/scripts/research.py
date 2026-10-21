@@ -9,7 +9,7 @@
 
 1. Подсказки поиска YouTube (автодополнение, без ключа): что люди реально набирают.
 2. Конкуренты — верх выдачи по запросу:
-     • есть ключ YouTube Data API (переменная YOUTUBE_API_KEY или --key-file) → API: просмотры, лайки, подписчики канала,
+     • есть ключ YouTube Data API (переменная YOUTUBE_API_KEY, --key-file или файл ~/.config/yt-seo/key) → API: просмотры, лайки, подписчики канала,
        теги, описания (≈ 205 единиц квоты за запуск из 10 000 в сутки);
      • ключа нет → yt-dlp (поиск и метаданные без ключа; подписчики только если yt-dlp отдал).
 3. Разбор: какие слова стоят в названиях, какие теги и хештеги реально используют ролики из топа (и сколько просмотров у
@@ -52,9 +52,10 @@ def log(*a): print(*a, file=sys.stderr, flush=True)
 def load_key():
     if A.no_api: return None
     k = os.environ.get("YOUTUBE_API_KEY", "").strip()
-    if not k and A.key_file:
-        p = Path(A.key_file).expanduser()
-        k = p.read_text().strip() if p.exists() else ""
+    for f in (A.key_file, "~/.config/yt-seo/key"):          # файл по умолчанию: надёжнее переменной окружения для GUI-приложений
+        if not k and f:
+            p = Path(f).expanduser()
+            k = p.read_text().strip() if p.exists() else ""
     return k or None
 KEY = load_key()
 
