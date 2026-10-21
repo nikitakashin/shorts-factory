@@ -3,14 +3,15 @@
 # dependencies = []
 # ///
 """research.py "<запрос>" ["<ещё запрос>" ...] [--out DIR] [--lang ru] [--region RU] [--format shorts|long]
-                [--top 20] [--deep] [--no-api] [--key-file FILE] [--min-views N]
+                [--top 20] [--deep] [--no-api] [--key-file FILE] [--env-file FILE] [--min-views N]
 
 Собирает ФАКТЫ из поиска YouTube, чтобы название, описание, теги и хештеги писались по данным, а не из головы.
 
 1. Подсказки поиска YouTube (автодополнение, без ключа): что люди реально набирают.
 2. Конкуренты — верх выдачи по запросу:
-     • есть ключ YouTube Data API (переменная YOUTUBE_API_KEY, --key-file или файл ~/.config/yt-seo/key) → API: просмотры, лайки, подписчики канала,
-       теги, описания (≈ 205 единиц квоты за запуск из 10 000 в сутки);
+     • есть ключ YouTube Data API (переменная YOUTUBE_API_KEY, --key-file, файл ~/.config/yt-seo/key или строка YOUTUBE_API_KEY= в .env)
+       → API: просмотры, лайки, подписчики канала,
+       теги, описания (≈ 200 единиц квоты на каждый запрос + ~5 на детали, из 10 000 в сутки);
      • ключа нет → yt-dlp (поиск и метаданные без ключа; подписчики только если yt-dlp отдал).
 3. Разбор: какие слова стоят в названиях, какие теги и хештеги реально используют ролики из топа (и сколько просмотров у
    тех, кто их использует), длины названий и описаний, главы, ссылки.
@@ -37,6 +38,7 @@ ap.add_argument("--top", type=int, default=20, help="сколько конкур
 ap.add_argument("--deep", action="store_true", help="расширить подсказки по алфавиту (больше запросов, дольше)")
 ap.add_argument("--no-api", action="store_true", help="не использовать ключ, даже если он есть")
 ap.add_argument("--key-file", help="файл с ключом YouTube Data API (одна строка)")
+ap.add_argument("--env-file", help=".env со строкой YOUTUBE_API_KEY=… (по умолчанию ближайший .env от текущей папки вверх до домашней)")
 ap.add_argument("--cookies-from-browser", help="для yt-dlp без ключа: взять cookies из браузера (chrome, safari…), если YouTube просит войти")
 ap.add_argument("--vidiq-keywords", help="JSON с результатами vidIQ keyword_research (см. SKILL.md): объём и конкуренция по фразам")
 ap.add_argument("--min-views", type=int, default=0, help="отбросить конкурентов с меньшим числом просмотров")
@@ -49,6 +51,23 @@ def log(*a): print(*a, file=sys.stderr, flush=True)
 
 
 # ───────────────────────── ключ ─────────────────────────
+def env_file_key():
+    """YOUTUBE_API_KEY из .env. Ключ часто лежит в .env проекта, а скрипт его не видел и молча уходил в yt-dlp (2026-10-22)."""
+    cands = [Path(A.env_file).expanduser()] if A.env_file else []
+    d = Path.cwd()
+    while True:
+        cands.append(d / ".env")
+        if d == Path.home() or d == d.parent: break
+        d = d.parent
+    for p in cands:
+        if not p.is_file(): continue
+        for line in p.read_text(errors="ignore").splitlines():
+            m = re.match(r"\s*(?:export\s+)?YOUTUBE_API_KEY\s*=\s*(.*)", line)
+            v = m.group(1).split(" #")[0].strip().strip("\"'") if m else ""
+            if v: return v
+    return ""
+
+
 def load_key():
     if A.no_api: return None
     k = os.environ.get("YOUTUBE_API_KEY", "").strip()
@@ -56,7 +75,7 @@ def load_key():
         if not k and f:
             p = Path(f).expanduser()
             k = p.read_text().strip() if p.exists() else ""
-    return k or None
+    return k or env_file_key() or None
 KEY = load_key()
 
 
@@ -202,6 +221,37 @@ def ytdlp_details(ids):
     return {r["id"]: r for r in res if r}
 
 
+CYRILLIC_LANGS = {"ru", "uk", "be", "bg", "kk", "ky", "mk", "mn", "sr", "tg"}
+
+
+def lang_ok(title):
+    """yt-dlp ищет без языка и страны: на «как войти в айти» он вернул английские шортсы про Cisco с 15 просмотрами,
+    и валидатор «подтверждал» теги чужой темой (2026-10-22). Для кириллических языков оставляем названия, где кириллица —
+    хотя бы 40 % букв («Claude Code за 5 минут» проходит, «Claude Code tutorial» — нет)."""
+    if A.lang not in CYRILLIC_LANGS: return True
+    letters = re.findall(r"[^\W\d_]", title)
+    return bool(letters) and sum("\u0400" <= c <= "\u04ff" for c in letters) / len(letters) >= 0.4
+
+
+def relevant(title, q):
+    """yt-dlp отдаёт выдачу целиком, вместе с клипами и музыкой («ДИНАСТИЯ 2» на «собеседование в айти», 2026-10-22):
+    в названии конкурента должно быть хотя бы одно значимое слово запроса."""
+    need = {t for t in stems(q) if t not in STOP and len(t) > 2}
+    return not need or bool(need & set(stems(title)))
+
+
+def take_balanced(lists):
+    """До A.top роликов с каждого запроса, по очереди. Раньше первый запрос забирал весь лимит, и второй выпадал:
+    из 30 конкурентов про «собеседование в айти» был один ролик (2026-10-22)."""
+    heads = [list(l) for l in lists]; quota = [A.top] * len(lists); out, seen = [], set()
+    while any(h and q for h, q in zip(heads, quota)):
+        for k, h in enumerate(heads):
+            while h and quota[k]:
+                i = h.pop(0)
+                if i not in seen: seen.add(i); out.append(i); quota[k] -= 1; break
+    return out
+
+
 def format_ok(duration, vertical=None):
     if A.format == "shorts": return 0 < duration <= SHORT_MAX and vertical is not False
     return duration > SHORT_MAX
@@ -209,22 +259,29 @@ def format_ok(duration, vertical=None):
 
 # ───────────────────────── сбор ─────────────────────────
 def gather_api(queries):
-    cand = []
-    for q in queries:
-        for i in api_candidates(q, A.top):
-            if i not in cand: cand.append(i)
-    det = api_details(cand)
-    recs = [dict(det[i], detail=True) for i in cand if i in det]
-    return [r for r in recs if format_ok(r["duration"])], len(recs)
+    per_q = [api_candidates(q, A.top) for q in queries]
+    det = api_details(list(dict.fromkeys(i for ids in per_q for i in ids)))
+    ok = lambda i: i in det and format_ok(det[i]["duration"]) and det[i]["views"] >= A.min_views
+    return [dict(det[i], detail=True) for i in take_balanced([[i for i in ids if ok(i)] for ids in per_q])], len(det)
 
 
 def gather_ytdlp(queries):
-    flat = {}
+    flat, per_q, foreign, off = {}, [], 0, 0
     for q in queries:
-        for e in ytdlp_flat(q, A.top * 3): flat.setdefault(e["id"], e)
-        if A.format == "shorts":
-            for e in ytdlp_flat(f"{q} shorts", A.top * 3): flat.setdefault(e["id"], e)
-    pick = [e for e in flat.values() if format_ok(e["duration"]) and e["views"] >= A.min_views][: A.top * len(queries)]
+        ids = []
+        for qq in ([q, f"{q} shorts"] if A.format == "shorts" else [q]):
+            for e in ytdlp_flat(qq, A.top * 3):
+                flat.setdefault(e["id"], e); ids.append(e["id"])
+        ok = []
+        for i in dict.fromkeys(ids):
+            e = flat[i]
+            if not (format_ok(e["duration"]) and e["views"] >= A.min_views): continue
+            if not lang_ok(e["title"]): foreign += 1
+            elif not relevant(e["title"], q): off += 1
+            else: ok.append(i)
+        per_q.append(ok)
+    if foreign or off: log(f"отброшено: на другом языке {foreign}, без слов запроса в названии {off} (yt-dlp ищет без языка и страны)")
+    pick = [flat[i] for i in take_balanced(per_q)]
     det = ytdlp_details([e["id"] for e in pick])
     recs = []
     for e in pick:
@@ -238,7 +295,7 @@ def gather(queries):
     if KEY:
         try:
             recs, seen = gather_api(queries); source = "api"
-            return [r for r in recs if r["views"] >= A.min_views][: A.top * len(queries)], source, seen
+            return recs, source, seen
         except ApiError as e: log(f"API недоступен ({e}); перехожу на yt-dlp")
     recs, seen = gather_ytdlp(queries)
     return recs, "yt-dlp", seen
