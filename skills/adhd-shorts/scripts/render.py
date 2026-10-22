@@ -397,7 +397,9 @@ def put(sig, t, g):
 cuts = [k for k in range(1, len(E["segs"]))   # вжух на склейке, где меняется крупность или начинается/кончается b-roll
         if (E["segs"][k].get("z", 1) != E["segs"][k - 1].get("z", 1) or E["segs"][k].get("broll") or E["segs"][k - 1].get("broll"))
         and not E["segs"][k].get("tail")       # tail — хвост после речи под графикой: без вжуха и тиканья
-        and not E["segs"][k].get("no_whoosh")]  # ответ в скетче-пинг-понге падает «всухую», без вжуха
+        and not E["segs"][k].get("no_whoosh")   # ответ в скетче-пинг-понге падает «всухую», без вжуха
+        # исходник идёт подряд (куски slowmo.py по 0.1 с, план, разрезанный под зум) — это не склейка: 30 вжухов на слоумо (2026-10-23)
+        and abs(E["segs"][k]["a"] - E["segs"][k - 1]["b"]) > 0.002]
 brolls = [(seg_t[k], s["n"] / FPS) for k, s in enumerate(E["segs"]) if s.get("broll") and not s.get("endcard") and not s.get("tail")]
 
 # --- библиотека сэмплов (fx.json "kit": путь к kit-файлу; относительный — от assets/ скилла) ---
