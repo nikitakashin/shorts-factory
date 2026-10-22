@@ -81,7 +81,7 @@ curl -L -o $F/Montserrat.ttf  "$G/montserrat/Montserrat%5Bwght%5D.ttf"     # с�
 ```bash
 uv run --script skills/adhd-shorts/scripts/fx_chain.py extract "<пресет>.fst" ~/Movies/Shorts/_presets/video-voice
 ```
-Скилл прогоняет через неё голос без FL. Плагины Waves грузятся долго (~4 мин) — это нормально.
+Скилл прогоняет через неё голос без FL. Если в пресете есть плагины Waves, они грузятся долго (~4 мин) — это нормально; без Waves цепочка проходит за секунды.
 
 ### 4. Черновики CapCut (по желанию)
 Формат проекта CapCut не документирован, поэтому структуру скрипт копирует с **твоего шаблона**. Сделай его один раз:

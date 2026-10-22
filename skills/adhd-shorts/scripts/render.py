@@ -505,9 +505,35 @@ json.dump(dict(global_gain=10 ** (FX.get("sfx_gain_db", -3) / 20), sounds=SFX_LO
 if "--sfx-only" in sys.argv: print("→", WD / "sfx.wav"); sys.exit(0)   # быстро перебрать звуки без перерендера картинки
 
 # ---------- видео ----------
+# «Завиралить» (viralize.py, 2026-10-22): --plate — чистый видеоряд без стикеров, хука, субтитров и полоски (из него режутся
+# кадры и куски для видеомоделей); --viral <json> — сгенерированные вставки вместо лица на своих отрезках, поверх них
+# стикеры и субтитры как обычно; --out <имя> — куда писать вместо video.mp4 (варианты моделей не затирают основной рендер)
+def _argv(flag):
+    return sys.argv[sys.argv.index(flag) + 1] if flag in sys.argv else None
+PLATE = "--plate" in sys.argv; PLATE_MAP = []
+VIRAL = json.load(open(_argv("--viral")))["clips"] if _argv("--viral") and not PLATE else []
+OUT_V = WD / ("plate.mp4" if PLATE else _argv("--out") or "video.mp4")
 enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{OW}x{OH}", "-r", str(FPS),
-    "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", str(FX.get("crf", 15)), "-pix_fmt", "yuv420p", str(WD / "video.mp4")],
+    "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", str(FX.get("crf", 15)), "-pix_fmt", "yuv420p", str(OUT_V)],
     stdin=subprocess.PIPE)
+VDEC = {}   # открытый декодер вставки: индекс → (Popen, последний кадр)
+def viral_frame(t):
+    """Кадр вставки на время t или None. Вставка растягивается/сжимается ровно на свой отрезок (fit "speed") или режется (fit "trim")."""
+    for i, v in enumerate(VIRAL):
+        if v["t0"] <= t < v["t1"]:
+            if i not in VDEC:
+                d = v["t1"] - v["t0"]; D = v.get("dur") or d
+                pts = f"setpts=(PTS-STARTPTS)*{d / D:.6f}," if v.get("fit", "speed") == "speed" else ""
+                VDEC[i] = [subprocess.Popen(["ffmpeg", "-v", "quiet", "-i", v["file"], "-an", "-vf",
+                    pts + f"fps={FPS},scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},format=rgb24",
+                    "-f", "rawvideo", "-"], stdout=subprocess.PIPE), None]
+            p_, lf = VDEC[i]; b_ = p_.stdout.read(W * H * 3)
+            if len(b_) == W * H * 3: lf = VDEC[i][1] = np.frombuffer(b_, np.uint8).reshape(H, W, 3)
+            if lf is None: return None
+            fade = v.get("xfade", 0.0)                      # мягкий выход, если конец отрезка не на склейке
+            return lf, (min(1.0, (v["t1"] - t) / fade) if fade else 1.0)
+        if i in VDEC and t >= v["t1"]: VDEC.pop(i)[0].kill()
+    return None
 BAR = FX.get("progress_bar", LOOK.get("accent", "#FFE500")); FACE_Y = FX.get("face_y", 800); fi = 0
 # Финальная заставка (план с "endcard": true): обложка полного видео + призыв. В Shorts ссылка «Связанное
 # видео» стоит внизу экрана — поэтому «ССЫЛКА ВНИЗУ». Только для вертикали.
@@ -778,12 +804,22 @@ for k, s in enumerate(E["segs"]):
         if SCR:
             sf_ = screen_frame(t)
             if sf_ is not None: fr = sf_.copy(); md = "land" if LAND else "full"
+        if VIRAL and md == "face" and not tr:            # до перехода на склейке: старый план уезжает уже на вставку
+            vf_ = viral_frame(t)
+            if vf_ is not None:
+                img_, a_ = vf_
+                fr = img_.copy() if a_ >= 1 else (img_ * a_ + fr * (1 - a_)).astype(np.uint8)
         ct = next((x for x in CUTTR if x["t0"] <= t < x["t1"]), None)
         if ct:                                    # переход на склейке лицо→лицо: последний кадр старого плана уезжает
             if held_for is not ct: held, held_for = prev_out, ct
             if held is not None: fr = TRX.mix(ct["kind"], held, fr, sub_ps(ct, t)[0], dict(dict(dir=ct["dir"], seed=SEED + int(ct["t0"] * 10), center=(W / 2, FACE_Y)), **ct["opt"]))
         prev_out = fr.copy()
         mo = None
+        if PLATE:                                   # + карта кадров: где в кадре только лицо (туда viralize.py ставит вставки)
+            k_ = "face" if md == "face" and not tr and not s.get("endcard") and not s.get("broll") else md
+            if PLATE_MAP and PLATE_MAP[-1][0] == k_: PLATE_MAP[-1][2] = fi + 1
+            else: PLATE_MAP.append([k_, fi, fi + 1])
+            enc.stdin.write(fr.tobytes()); fi += 1; continue
         for si, (ts, d, img, sx, sy, inst, beh) in enumerate(STICK):
             if 0 <= t - ts < d:
                 q = (t - ts) / 0.14; sc = 1.0 if inst or q >= 1.5 else 0.4 + 0.75 * ease(q) - 0.15 * ease((q - 1) * 2)
@@ -812,4 +848,7 @@ for k, s in enumerate(E["segs"]):
     print(f"план {k:02d} готов ({fi}/{NF})", flush=True)
 enc.stdin.close(); enc.wait()
 if gdec: gdec.stdout.close(); gdec.wait()
-print("→", WD / "video.mp4", WD / "sfx.wav")
+for p_, _ in VDEC.values(): p_.kill()
+if PLATE: json.dump(dict(fps=FPS, frames=fi, runs=[dict(mode=m_, s=a_ / FPS, e=b_ / FPS) for m_, a_, b_ in PLATE_MAP]),
+                    open(WD / "plate.json", "w"), indent=1)
+print("→", OUT_V, WD / "sfx.wav")
