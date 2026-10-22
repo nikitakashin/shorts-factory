@@ -39,6 +39,7 @@ ap.add_argument("--since"); ap.add_argument("--status", default="all"); ap.add_a
 ap.add_argument("--shorts", action="store_true"); ap.add_argument("--long", action="store_true")
 ap.add_argument("--limit", type=int, default=50)
 ap.add_argument("--out"); ap.add_argument("--batch"); ap.add_argument("--yes", action="store_true")
+ap.add_argument("--keep-folder", action="store_true", help="apply: SEO поставить, а статус «выгружен» и перенос папки в Archive/ не делать (автор ещё не поставил обложку)")
 ap.add_argument("--no-links", action="store_true", help="ссылок в описании нет и не дописывать: у канала закрыты внешние ссылки (по умолчанию для профиля ai-native)")
 ap.add_argument("--preset"); ap.add_argument("--metrics"); ap.add_argument("--dimensions"); ap.add_argument("--filters")
 ap.add_argument("--sort"); ap.add_argument("--max", type=int, default=50)
@@ -268,7 +269,8 @@ def cmd_apply():
     print(f"применено {ok} из {len(plan['changes'])} (≈ {50 * ok} единиц квоты)")
     # ролик из папки adhd-shorts загружен и получил SEO → статус «выгружен», папка уезжает в Archive/ (status.py, 2026-10-22)
     st = Path(__file__).resolve().parents[2] / "adhd-shorts/scripts/status.py"
-    if ok and plan.get("folder") and Path(plan["folder"]).is_dir() and st.is_file():
+    if ok and A.keep_folder: print("папка остаётся на месте (--keep-folder): «выгружен» — status.py set <папка> uploaded")
+    elif ok and plan.get("folder") and Path(plan["folder"]).is_dir() and st.is_file():
         import subprocess
         subprocess.run([sys.executable, str(st), "set", plan["folder"], "uploaded", "--note", f"SEO через API, ролик {plan['changes'][0]['id']}"])
 

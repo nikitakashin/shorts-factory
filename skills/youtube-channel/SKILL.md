@@ -63,7 +63,8 @@ uv run --script $Y apply "$ПАПКА/.work/yt_plan.json" --yes
 ```
 Закреп API закрепить не умеет: отдай автору текст из вывода `plan`, он вставит и закрепит в Студии в один клик.
 После `apply` по плану из папки ролика статус папки становится «выгружен», и она переезжает в `~/Movies/Shorts/<канал>/Archive/`
-(`adhd-shorts/scripts/status.py`).
+(`adhd-shorts/scripts/status.py`). Автор ещё не поставил обложку и просит папки не трогать — `apply … --yes --keep-folder`
+(SEO встаёт, статус и папка остаются; потом `status.py set <папка> uploaded`).
 
 **Обложка:** `uv run --script $Y thumb <id> "$ПАПКА/cover_A.jpg" --yes` (после «да»; файл до 2 МБ — `.jpg` из `cover_gen.py`;
 у канала должен быть подтверждён телефон). Только длинные видео: на шортс (≤ 3 мин) `thumb` откажется — YouTube отвечает «ок»,
