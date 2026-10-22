@@ -39,6 +39,7 @@ ap.add_argument("--since"); ap.add_argument("--status", default="all"); ap.add_a
 ap.add_argument("--shorts", action="store_true"); ap.add_argument("--long", action="store_true")
 ap.add_argument("--limit", type=int, default=50)
 ap.add_argument("--out"); ap.add_argument("--batch"); ap.add_argument("--yes", action="store_true")
+ap.add_argument("--no-links", action="store_true", help="ссылок в описании нет и не дописывать: у канала закрыты внешние ссылки (по умолчанию для профиля ai-native)")
 ap.add_argument("--preset"); ap.add_argument("--metrics"); ap.add_argument("--dimensions"); ap.add_argument("--filters")
 ap.add_argument("--sort"); ap.add_argument("--max", type=int, default=50)
 ap.add_argument("--start"); ap.add_argument("--end")
@@ -190,6 +191,8 @@ def check(after):
     return errs
 
 
+# каналы, у которых YouTube ещё не открыл внешние ссылки (нужна «расширенная проверка» канала): ссылки в описании запрещены (автор, 2026-10-22)
+NO_LINKS = {p.strip() for p in os.environ.get("YT_NO_LINKS", "ai-native").split(",") if p.strip()}
 MUTABLE = ("title", "description", "tags", "categoryId", "defaultLanguage", "defaultAudioLanguage")
 
 
@@ -223,7 +226,10 @@ def cmd_plan():
         before = {k: v["snippet"][k] for k in MUTABLE if k in v["snippet"]}
         after = dict(before, **{k: w[k] for k in ("title", "description", "tags") if k in w})
         # ссылки (телега, GitHub) из старого описания не теряем: нет в новом — дописываем в конец (2026-10-22)
-        lost = [u for u in re.findall(r"https?://\S+", before.get("description", "")) if u not in after.get("description", "")]
+        no_links = A.no_links or PROFILE in NO_LINKS
+        if no_links and re.search(r"https?://", after.get("description", "")):
+            print(f"✗ {i}: в описании ссылка, а у канала закрыты внешние ссылки"); bad += 1; continue
+        lost = [] if no_links else [u for u in re.findall(r"https?://\S+", before.get("description", "")) if u not in after.get("description", "")]
         if lost:
             after["description"] = after.get("description", "").rstrip() + "\n\n" + "\n".join(dict.fromkeys(lost))
             print(f"! {i}: в новом описании не было ссылок из старого — дописал: {', '.join(dict.fromkeys(lost))}")
