@@ -315,7 +315,11 @@ def hook_img(text, lines=None, size=130, glow="#50C8FF", accent="#FF3CAA", **_):
         y += p_.shape[0] + gap
     out[..., 3] *= 255; return out.astype(np.uint8)
 
-def sticker(text, bg="#E61E28", fg="#FFFFFF", size=100, rot=-6, style=None, **_):
+def sticker(text="", bg="#E61E28", fg="#FFFFFF", size=100, rot=-6, style=None, image=None, width=900, **_):
+    if image:                                       # готовая плашка PNG с прозрачным фоном (2026-10-22, «Нейропатруль»): width — ширина в кадре
+        ip = Path(image).expanduser(); ip = ip if ip.is_absolute() else WD / ip
+        im = Image.open(ip).convert("RGBA"); k = width / im.width; im = im.resize((width, round(im.height * k)), Image.LANCZOS)
+        return np.array(im.rotate(rot, expand=True, resample=Image.BICUBIC))
     if (style or LOOK.get("stickers", "plate")) == "glow":      # без плашки: жирный текст со свечением цвета bg
         f = font(size, 900); L = text.split("\n"); pad = int(size * 0.7); lh = int(size * 1.12)
         wl = max(f.getlength(x) for x in L)
@@ -591,9 +595,9 @@ for c in FX.get("screen", []):
             o0, o1 = max(c["a"], s_["a"]), min(c["b"], s_["b"])
             if o1 - o0 < 0.05: continue
             sp_ = s_.get("sp_eff", E.get("speed", 1.15))
-            SCR.append(dict(file=f, t=s_["f0"] / FPS + (o0 - s_["a"]) / sp_, dur=(o1 - o0) / sp_, src=c["from"] + (o0 - c["a"]) * rate, speed=sp_ * rate))
+            SCR.append(dict(file=f, t=s_["f0"] / FPS + (o0 - s_["a"]) / sp_, dur=(o1 - o0) / sp_, src=c["from"] + (o0 - c["a"]) * rate, speed=sp_ * rate, cap_y=c.get("cap_y")))
     else:
-        SCR.append(dict(file=f, t=c["t"], dur=c["dur"], src=c["from"], speed=c.get("speed", 1.0)))
+        SCR.append(dict(file=f, t=c["t"], dur=c["dur"], src=c["from"], speed=c.get("speed", 1.0), cap_y=c.get("cap_y")))
 SCR.sort(key=lambda x: x["t"])
 _sdec = {}
 def screen_frame(t):
@@ -830,7 +834,11 @@ for k, s in enumerate(E["segs"]):
         # запись экрана — после выбора раскладки (2026-10-14: стояла внутри if/elif и в вертикали съела все панели)
         if SCR:
             sf_ = screen_frame(t)
-            if sf_ is not None: fr = sf_.copy(); md = "land" if LAND else "full"
+            if sf_ is not None:
+                fr = sf_.copy(); md = "land" if LAND else "full"
+                # "cap_y" у записи — субтитры в другом месте, пока она на экране (у карточки своя подпись внизу, 2026-10-22)
+                cy_ = next((c["cap_y"] for c in SCR if c["cap_y"] is not None and c["t"] - 1e-6 <= t < c["t"] + c["dur"]), None)
+                if cy_ is not None: cap_y = cy_
         if VIRAL and md == "face" and not tr:            # до перехода на склейке: старый план уезжает уже на вставку
             vf_ = viral_frame(t)
             if vf_ is not None:
