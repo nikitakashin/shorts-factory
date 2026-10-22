@@ -97,17 +97,25 @@ def api(path, **params):
 
 # ───────────────────────── vidIQ (необязательно) ─────────────────────────
 def load_vidiq(path):
-    """Файл, который агент собрал из ответов vidIQ MCP: список {phrase, volume, competition, score}. Названия полей терпимые."""
+    """vidIQ keyword_research: файл от vidiq_cache.py (список {phrase, volume = запросов в месяц, volume_display, competition, score,
+    growth_pct}) или сырой ответ MCP (seedKeyword + relatedKeywords). Названия полей терпимые."""
     raw = json.loads(Path(path).expanduser().read_text(encoding="utf-8"))
+    if isinstance(raw, dict) and ("seedKeyword" in raw or "relatedKeywords" in raw):
+        raw = ([raw["seedKeyword"]] if raw.get("seedKeyword") else []) + list(raw.get("relatedKeywords") or [])
     items = raw.get("keywords", raw) if isinstance(raw, dict) else raw
     pick = lambda d, ks: next((d[k] for k in ks if k in d and d[k] is not None), None)
     out = []
     for d in items:
         if not isinstance(d, dict): continue
         ph = pick(d, ("phrase", "keyword", "query", "term", "text"))
-        if ph: out.append(dict(phrase=str(ph).strip().lower(), volume=pick(d, ("volume", "search_volume", "searchVolume")),
+        # «volume» у сырого ответа vidIQ — балл 0–100, а запросы в месяц — estimatedMonthlySearch (0 = «меньше 750»)
+        vol = pick(d, ("estimatedMonthlySearch", "search_volume", "searchVolume")) if "estimatedMonthlySearch" in d else pick(d, ("volume", "search_volume", "searchVolume"))
+        if ph: out.append(dict(phrase=str(ph).strip().lower(), volume=vol,
+                               volume_display=pick(d, ("volume_display", "monthlySearchesDisplay")),
                                competition=pick(d, ("competition", "competition_score", "competitionScore")),
-                               score=pick(d, ("overall", "overall_score", "overallScore", "score"))))
+                               score=pick(d, ("overall", "overall_score", "overallScore", "score")),
+                               growth_pct=pick(d, ("growth_pct", "searchDemandGrowthPct"))))
+    out.sort(key=lambda v: -(v["volume"] or 0))
     return out
 
 VIDIQ = load_vidiq(A.vidiq_keywords) if A.vidiq_keywords else []
@@ -417,9 +425,16 @@ def write_md(data, path):
     for c in data["keyword_candidates"][:15]:
         L.append(f"| {c['phrase']} | {c['rank']} | {c['asked_in']} | {c['titles_with_all_words']} |")
     if data["vidiq"]:
-        L += ["", "## vidIQ: ключевые слова", "", "Данные из vidIQ MCP (методика оценок на странице vidIQ не раскрыта; это оценки сервиса, не факт).", "",
-              "| Фраза | Объём | Конкуренция | Оценка |", "|---|---|---|---|"]
-        L += [f"| {esc(v['phrase'])} | {fmt(v['volume']) if isinstance(v['volume'], int) else (v['volume'] if v['volume'] is not None else '—')} | {v['competition'] if v['competition'] is not None else '—'} | {v['score'] if v['score'] is not None else '—'} |" for v in data["vidiq"][:30]]
+        L += ["", "## vidIQ: сколько ищут в месяц", "", "Оценки vidIQ (методика закрыта; «<750» — мало, но не ноль). Конкуренция 0–100: меньше — легче. "
+              "Главный ключ выбирай отсюда среди фраз, которые ролик **действительно** закрывает.", "",
+              "| Фраза | Запросов в месяц | Конкуренция | Рост за 30 дн. | Названий конкурентов со всеми словами |", "|---|---|---|---|---|"]
+        cov = {c["phrase"]: c["titles_with_all_words"] for c in data["keyword_candidates"]}
+        for v in data["vidiq"][:30]:
+            need = {t for t in stems(v["phrase"]) if t not in STOP}
+            n = cov.get(v["phrase"], sum(1 for r in data["competitors"] if need and need <= set(stems(r["title"]))))
+            vol = v.get("volume_display") or (fmt(v["volume"]) if isinstance(v["volume"], int) else "—")
+            gr = f"{v['growth_pct']:+.0f}%" if isinstance(v.get("growth_pct"), (int, float)) else "—"
+            L.append(f"| {esc(v['phrase'])} | {vol} | {v['competition'] if v['competition'] is not None else '—'} | {gr} | {n} |")
     L += ["", "## Названия конкурентов", "",
           f"- Длина: медиана **{s['title_len']['median']}**, середина выборки {s['title_len']['p25']}–{s['title_len']['p75']} символов",
           f"- С цифрой: {s['title_with_digit_pct']}% · со скобками: {s['title_with_brackets_pct']}% · с вопросом: {s['title_with_question_pct']}% · с хештегом: {pc(s['title_with_hashtag_pct'])}", "",

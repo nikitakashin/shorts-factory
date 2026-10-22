@@ -205,7 +205,9 @@ def cmd_plan():
     elif len(A.args) == 1 and Path(A.args[0]).expanduser().is_dir():   # папка ролика из adhd-shorts
         d = Path(A.args[0]).expanduser().resolve(); folder = str(d)
         if not (d / "youtube.md").is_file(): sys.exit(f"в {d} нет youtube.md")
-        i = find_by_draft_title(Y, d.name); print(f"нашёл ролик {i} с черновым названием «{d.name}»")
+        vids = [f for f in d.glob("*.mp4") if f.stem != "short"]   # видео названо как папка или «<ролик>-<часть>» у серий
+        draft = vids[0].stem if len(vids) == 1 else d.name
+        i = find_by_draft_title(Y, draft); print(f"нашёл ролик {i} с черновым названием «{draft}»")
         want, pin = parse_youtube_md(d / "youtube.md"); wants = [dict(want, id=i)]
         if not A.out: A.out = str(d / ".work/yt_plan.json") if (d / ".work").is_dir() else str(d / "yt_plan.json")
         covers = sorted(d.glob("cover_*.jpg"))
@@ -220,6 +222,11 @@ def cmd_plan():
         if not v: print(f"✗ {i}: не найден на подключённом канале"); bad += 1; continue
         before = {k: v["snippet"][k] for k in MUTABLE if k in v["snippet"]}
         after = dict(before, **{k: w[k] for k in ("title", "description", "tags") if k in w})
+        # ссылки (телега, GitHub) из старого описания не теряем: нет в новом — дописываем в конец (2026-10-22)
+        lost = [u for u in re.findall(r"https?://\S+", before.get("description", "")) if u not in after.get("description", "")]
+        if lost:
+            after["description"] = after.get("description", "").rstrip() + "\n\n" + "\n".join(dict.fromkeys(lost))
+            print(f"! {i}: в новом описании не было ссылок из старого — дописал: {', '.join(dict.fromkeys(lost))}")
         errs = check(after)
         for e in errs: print(f"✗ {i}: {e}")
         if errs: bad += 1; continue
@@ -290,7 +297,9 @@ def cmd_analytics():
     q = dict(ids="channel==MINE", startDate=start, endDate=end, metrics=p["metrics"])
     for k in ("dimensions", "filters", "sort"):
         if p.get(k): q[k] = p[k]
-    if "video" in (p.get("dimensions") or ""): q["maxResults"] = min(A.max, 200)
+    dims = p.get("dimensions") or ""
+    if "video" in dims: q["maxResults"] = min(A.max, 200)
+    if "insightTrafficSourceDetail" in dims: q["maxResults"] = min(A.max, 25)   # без лимита ≤ 25 API отвечает «query is not supported»
     r = call(yta().reports().query(**q))
     head = [h["name"] for h in r.get("columnHeaders", [])]; rows = r.get("rows", [])
     if "video" in head and rows:                       # подписать ролики названиями
