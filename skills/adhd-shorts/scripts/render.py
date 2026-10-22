@@ -434,7 +434,7 @@ if KIT:
             if not files: raise SystemExit(f"SFX: нет файлов для «{spec}» (библиотеки: {KIT['libs']})")
             if spec == "end":    # концовка не повторяет те, что уже стоят в других роликах (автор: «разнообразие давай»)
                 used = {}                                   # сколько роликов уже кончаются этим звуком
-                for f_ in Path.home().glob("Movies/Shorts/*/.work/sfx_list.json"):
+                for f_ in [q for pat in ("*", "*/*", "*/Archive/*") for q in Path.home().glob(f"Movies/Shorts/{pat}/.work/sfx_list.json")]:
                     if f_.resolve().parent == WD.resolve(): continue
                     try:
                         for n_ in {Path(x["file"]).name for x in json.load(open(f_))["sounds"] if x.get("spec") == "end"}: used[n_] = used.get(n_, 0) + 1

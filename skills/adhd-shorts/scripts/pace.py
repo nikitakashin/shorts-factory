@@ -26,6 +26,8 @@ if not DIRS and not VIDEOS: DIRS = list(ST)
 
 def wd_of(d):
     p = Path(d).expanduser(); p = p if p.is_absolute() else ROOT / d
+    if not p.exists():   # ролики разложены по каналам, выгруженные — в <канал>/Archive/ (status.py, 2026-10-22)
+        p = next((q for q in [*ROOT.glob(f"*/{d}"), *ROOT.glob(f"*/Archive/{d}")] if q.is_dir()), p)
     return p if p.name.startswith(".") else p / ".work"
 
 def own(d):
