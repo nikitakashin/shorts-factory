@@ -277,6 +277,10 @@ def cmd_thumb():
     if not A.yes: sys.exit("thumb меняет обложку: нужен флаг --yes (только после «да» автора)")
     from googleapiclient.http import MediaFileUpload
     i, f = vid_id(A.args[0]), Path(A.args[1])
+    # Шортсу API отвечает «ок», но в Студии остаётся кадр из видео (2026-10-22, три ролика); автор ставит обложку шортса в Студии сам
+    v = get_videos(yt(), [i], parts="contentDetails").get(i)
+    if v and iso_dur(v["contentDetails"]["duration"]) <= 180:
+        sys.exit(f"{i} — шортс: обложку через API YouTube не ставит. Пришли автору {f} — загрузит в Студии («Значок»)")
     if f.stat().st_size > 2 * 1024 * 1024: sys.exit(f"{f.name}: {f.stat().st_size // 1024} КБ — YouTube принимает обложку до 2 МБ (бери .jpg из cover_gen.py)")
     call(yt().thumbnails().set(videoId=i, media_body=MediaFileUpload(str(f))))
     print(f"✓ обложка {f.name} → {i}")
