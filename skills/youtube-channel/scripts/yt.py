@@ -131,7 +131,8 @@ def upload_ids(Y, n):
 def find_by_draft_title(Y, name):
     """Ролик, загруженный файлом <папка>.mp4: YouTube ставит имя файла черновым названием (2026-10-22)."""
     V = get_videos(Y, upload_ids(Y, 100), parts="snippet,status")
-    norm = lambda s: re.sub(r"\.(mp4|mov)$", "", s.strip().lower())
+    # YouTube меняет дефисы и подчёркивания в имени файла на пробелы («2026 10 21 ask expert 1b», 2026-10-22): сравниваем без знаков
+    norm = lambda s: " ".join(re.sub(r"[^0-9a-zа-яё]+", " ", re.sub(r"\.(mp4|mov)$", "", s.strip().lower())).split())
     hit = [v for v in V.values() if norm(v["snippet"]["title"]) == norm(name)]
     if len(hit) == 1: return hit[0]["id"]
     if len(hit) > 1: sys.exit(f"роликов с названием «{name}» несколько: {', '.join(v['id'] for v in hit)} — укажи id")
