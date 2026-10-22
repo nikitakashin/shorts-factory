@@ -34,7 +34,7 @@
 - [Claude Code](https://claude.com/claude-code).
 - `ffmpeg` (`brew install ffmpeg`), [`uv`](https://docs.astral.sh/uv/) (`brew install uv`) — зависимости Python-скриптов ставятся сами.
 - **Node.js 20+** — для `ui-panels` (движок [HyperFrames](https://www.npmjs.com/package/hyperframes) ставится при первом запуске).
-- Размытие фона, проверка субтитров и лиц — Apple Vision через `pyobjc` (ставится сам).
+- Проверка субтитров и лиц, «текст за головой», размытие фона по желанию — Apple Vision через `pyobjc` (ставится сам).
 - По желанию:
   - **Claude in Chrome** + аккаунт на podcast.adobe.com — для чистки голоса в Adobe Podcast Enhance;
   - свой **пресет FL Studio** (`.fst`) и установленные VST3-плагины из него — для своей цепочки на голосе;

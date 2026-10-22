@@ -513,8 +513,13 @@ def _argv(flag):
 PLATE = "--plate" in sys.argv; PLATE_MAP = []
 VIRAL = json.load(open(_argv("--viral")))["clips"] if _argv("--viral") and not PLATE else []
 OUT_V = WD / ("plate.mp4" if PLATE else _argv("--out") or "video.mp4")
+# Кодек: аппаратный VideoToolbox по умолчанию (2026-10-22: ноут грелся; x264 medium crf15 на 34-с ролике — 157 с процессора,
+# VideoToolbox q85 — ~7 с, сходство с эталоном 0.9936 против 0.9931 у x264). "encoder": "x264" в fx.json — старый путь.
+_HWENC = sys.platform == "darwin" and "h264_videotoolbox" in subprocess.run(["ffmpeg", "-hide_banner", "-encoders"], capture_output=True, text=True).stdout
+VENC = (["-c:v", "h264_videotoolbox", "-q:v", str(FX.get("vt_q", 85)), "-allow_sw", "1"] if _HWENC and FX.get("encoder", "vt") != "x264"
+        else ["-c:v", "libx264", "-preset", "medium", "-crf", str(FX.get("crf", 15))])
 enc = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{OW}x{OH}", "-r", str(FPS),
-    "-i", "-", "-c:v", "libx264", "-preset", "medium", "-crf", str(FX.get("crf", 15)), "-pix_fmt", "yuv420p", str(OUT_V)],
+    "-i", "-", *VENC, "-pix_fmt", "yuv420p", str(OUT_V)],
     stdin=subprocess.PIPE)
 VDEC = {}   # открытый декодер вставки: индекс → (Popen, последний кадр)
 def viral_frame(t):
@@ -614,20 +619,27 @@ if SCR: print(f"запись экрана на весь кадр: {len(SCR)} к�
 # (VNGeneratePersonSegmentationRequest, accurate, ~32 мс/кадр на 540×960), фон — тот же кадр, сильно размытый
 # и затемнённый, плюс виньетка. Полная замена фона не годится: цветы у уха попадают в маску, у волос кайма.
 # "bg": false — выключить; {"blur": 40, "dim": 0.55, "vignette": 0.55, "smooth": 0.6} — параметры.
-BG = FX.get("bg", {}) if FX.get("bg", {}) is not False else None
-BEHIND = any(x[6] for x in STICK); VISION = BG is not None or BEHIND
+# Скорость (2026-10-22, «Капча» 34 с @60 к/с: рендер 208 с, из них маска Vision 76 с): "mask_every": 2 — маска раз в 2 кадра
+# (между ними и так сглаживается), "quality": "accurate" | "balanced" (10 мс вместо 35, край волос грубее) | "fast".
+# "mode": "ellipse" — без вырезания человека: размывается всё вне мягкого овала по центру (Vision не нужен, почти бесплатно).
+# 2026-10-22 автор: «с фоном вообще больше не будем ничего делать» — по умолчанию фон как снят (размытие стоило 2+ мин
+# на 34-с ролике). Включить — явно: "bg": {} (вырезание человека), "bg": {"mode": "ellipse"} (овал без Vision).
+BG = FX["bg"] if isinstance(FX.get("bg"), dict) else None
+ELLIPSE = BG is not None and BG.get("mode") == "ellipse"
+BEHIND = any(x[6] for x in STICK); VISION = (BG is not None and not ELLIPSE) or BEHIND
 if VISION:
     try:
         import objc, Vision, Quartz
         from Foundation import NSData
     except Exception as e_:
         print(f"Apple Vision недоступен ({e_}) — фон как есть, «за головой» выключено"); BG = None; BEHIND = VISION = False
+_VQ = {"accurate": 0, "balanced": 1, "fast": 2}.get((BG or {}).get("quality", "accurate"), 0)
 if VISION:
     def person_mask(rgb_):
         with objc.autorelease_pool():
             ok_, buf_ = cv2.imencode(".bmp", cv2.resize(rgb_, (540, 960), interpolation=cv2.INTER_AREA)[..., ::-1])
             req = Vision.VNGeneratePersonSegmentationRequest.alloc().initWithCompletionHandler_(None)
-            req.setQualityLevel_(0); req.setOutputPixelFormat_(0x4C303038)       # accurate, OneComponent8
+            req.setQualityLevel_(_VQ); req.setOutputPixelFormat_(0x4C303038)     # 0 accurate / 1 balanced / 2 fast, OneComponent8
             hnd = Vision.VNImageRequestHandler.alloc().initWithData_options_(NSData.dataWithBytes_length_(buf_.tobytes(), len(buf_)), None)
             ok_, _ = hnd.performRequests_error_([req], None); res = req.results()
             if not ok_ or not res: return None
@@ -643,24 +655,39 @@ if VISION:
         m_ = cv2.warpAffine(cv2.resize(m_src, (W, H), interpolation=cv2.INTER_LINEAR), Maff, (W, H), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
         return cv2.GaussianBlur(m_, (0, 0), 1.5)[..., None]
 if BG is not None:
-    BG = dict(blur=40, dim=0.55, vignette=0.55, smooth=0.6) | BG
+    BG = dict(blur=40, dim=0.55, vignette=0.55, smooth=0.6, mask_every=2, rx=0.36, ry=0.50, cy=None, feather=0.25) | BG
+    _MK = [0]
+    if ELLIPSE:                                       # мягкий овал «человек тут»: от лица вниз, плечи шире головы
+        _yy, _xx = np.mgrid[0:H // 4, 0:W // 4].astype(np.float32) * 4
+        _cy = BG["cy"] or FX.get("face_y", 800) + 0.05 * H
+        _d = np.sqrt(((_xx - W / 2) / (BG["rx"] * W)) ** 2 + ((_yy - _cy) / (BG["ry"] * H)) ** 2)
+        _d = np.minimum(_d, np.where(_yy > _cy, np.abs(_xx - W / 2) / (BG["rx"] * W * 1.15), 9))   # ниже центра — полоса до низа
+        ELL = cv2.resize(np.clip((1 + BG["feather"] - _d) / BG["feather"], 0, 1), (W, H), interpolation=cv2.INTER_LINEAR)
+        del _yy, _xx, _d
     _yy, _xx = np.mgrid[0:H, 0:W].astype(np.float32)
     _r = np.sqrt(((_xx - W / 2) / (W / 2)) ** 2 + ((_yy - H / 2) / (H / 2)) ** 2)
     VIG = np.clip(1 - BG["vignette"] * (_r - 0.4), 0.35, 1).astype(np.float32)[..., None]; del _yy, _xx, _r
+    VIG8 = np.repeat(np.round(VIG * 255).astype(np.uint8), 3, axis=2)
     def bg_blur(rgb_, prev):
         """→ (кадр с размытым фоном, маска для сглаживания следующего кадра)."""
-        m = person_mask(rgb_)
+        _MK[0] += 1
+        if ELLIPSE: m = ELL
+        elif prev is not None and _MK[0] % max(1, BG["mask_every"]): m = prev          # маска раз в N кадров (prev сглажена)
+        else: m = person_mask(rgb_)
         if m is None: return rgb_, prev
-        if prev is not None and prev.shape == m.shape: m = BG["smooth"] * m + (1 - BG["smooth"]) * prev   # край не дрожит
+        if prev is not None and prev.shape == m.shape and m is not prev and not ELLIPSE: m = BG["smooth"] * m + (1 - BG["smooth"]) * prev   # край не дрожит
         q = 4; sm = cv2.resize(rgb_, (W // q, H // q), interpolation=cv2.INTER_AREA).astype(np.float32)
         wb = 1 - cv2.resize(m, (W // q, H // q), interpolation=cv2.INTER_AREA); sig = BG["blur"] / q
         # нормированное размытие: человек не растекается ореолом по фону
         bgs = cv2.GaussianBlur(sm * wb[..., None], (0, 0), sig) / np.maximum(cv2.GaussianBlur(wb, (0, 0), sig), 1e-3)[..., None]
-        bg_ = cv2.resize(bgs, (W, H), interpolation=cv2.INTER_LINEAR) * BG["dim"]
-        mf = cv2.GaussianBlur(cv2.resize(m, (W, H), interpolation=cv2.INTER_LINEAR), (0, 0), 2)[..., None]
-        out = (rgb_.astype(np.float32) * mf + bg_ * (1 - mf)) * VIG
-        return np.clip(out, 0, 255).astype(np.uint8), m
-    print("фон: размытие за человеком (Apple Vision)")
+        # всё тяжёлое — в 1/4 и 1/2 разрешения; в полном только uint8-смешивание OpenCV (2026-10-22: float-математика
+        # на 1080×1920 стоила ~40 с на 34-с ролике)
+        bg_ = cv2.resize(np.clip(bgs * BG["dim"], 0, 255).astype(np.uint8), (W, H), interpolation=cv2.INTER_LINEAR)
+        mf = cv2.resize(cv2.GaussianBlur(cv2.resize(m, (W // 2, H // 2), interpolation=cv2.INTER_AREA), (0, 0), 1), (W, H),
+                        interpolation=cv2.INTER_LINEAR).astype(np.float32)
+        out = cv2.blendLinear(rgb_, bg_, mf, 1 - mf)
+        return cv2.multiply(out, VIG8, scale=1 / 255), m
+    print("фон: " + ("размытие вне овала (без Vision)" if ELLIPSE else f"размытие за человеком (Apple Vision, {['accurate','balanced','fast'][_VQ]}, маска раз в {BG['mask_every']} к.)"))
 
 # ---------- геометрия раскладок для переходов (transitions.py) ----------
 PIPDEF = dict(pos="tr", w=340, h=430, rad=44, y=190)
